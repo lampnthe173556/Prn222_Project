@@ -1,7 +1,14 @@
+using EcormerProjectPRN222.Models;
+using Microsoft.EntityFrameworkCore;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddDbContext<Prn222ProjectContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DBDefault")));
+
+
 
 var app = builder.Build();
 
@@ -22,6 +29,6 @@ app.UseAuthorization();
 
 app.MapControllerRoute(
     name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}");
+    pattern: "{controller=Roles}/{action=Index}/{id?}");
 
 app.Run();
