@@ -5,17 +5,13 @@ namespace EcormerProjectPRN222.Models;
 
 public partial class OrderDetail
 {
-    public int OrderDetailId { get; set; }
+    public int OrderDetailD { get; set; }
 
-    public int OrderId { get; set; }
+    public int ProductId { get; set; }
 
-    public int VariantId { get; set; }
+    public int Quanity { get; set; }
 
-    public int Quantity { get; set; }
+    public virtual Order OrderDetailDNavigation { get; set; } = null!;
 
-    public double Price { get; set; }
-
-    public virtual Order Order { get; set; } = null!;
-
-    public virtual Variant Variant { get; set; } = null!;
+    public virtual Product Product { get; set; } = null!;
 }
