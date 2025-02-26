@@ -23,16 +23,15 @@ public partial class MyProjectClothingContext : DbContext
 
     public virtual DbSet<OrderDetail> OrderDetails { get; set; }
 
+    public virtual DbSet<Payment> Payments { get; set; }
+
     public virtual DbSet<Product> Products { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
-
-        if (!optionsBuilder.IsConfigured) { optionsBuilder.UseSqlServer(config.GetConnectionString("MyCnn")); }
-    }
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=(local);Database=MyProject_Clothing;UID=sa;PWD=lamlam276762;TrustServerCertificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -80,22 +79,29 @@ public partial class MyProjectClothingContext : DbContext
 
         modelBuilder.Entity<Order>(entity =>
         {
-            entity.HasKey(e => e.OrderDetaiId).HasName("PK_OrderDetail");
+            entity.HasKey(e => e.OrderId).HasName("PK_OrderDetail");
 
             entity.ToTable("Order");
 
-            entity.Property(e => e.OrderDetaiId).HasColumnName("OrderDetaiID");
+            entity.Property(e => e.OrderId).HasColumnName("OrderID");
             entity.Property(e => e.Comment).HasColumnName("comment");
             entity.Property(e => e.OrderDate).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.PayId).HasColumnName("pay_id");
             entity.Property(e => e.Status)
                 .HasDefaultValue(-1)
                 .HasColumnName("status");
+            entity.Property(e => e.TotalAmount).HasColumnName("total_amount");
             entity.Property(e => e.UserId).HasColumnName("UserID");
+
+            entity.HasOne(d => d.Pay).WithMany(p => p.Orders)
+                .HasForeignKey(d => d.PayId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Order_Payment");
 
             entity.HasOne(d => d.User).WithMany(p => p.Orders)
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_OrderDetail_Account");
+                .HasConstraintName("FK_Order_Account");
         });
 
         modelBuilder.Entity<OrderDetail>(entity =>
@@ -106,15 +112,28 @@ public partial class MyProjectClothingContext : DbContext
 
             entity.Property(e => e.ProductId).HasColumnName("ProductID");
 
-            entity.HasOne(d => d.OrderDetailDNavigation).WithMany()
-                .HasForeignKey(d => d.OrderDetailD)
+            entity.HasOne(d => d.Oder).WithMany()
+                .HasForeignKey(d => d.OderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_OrderItem_OrderDetail1");
+                .HasConstraintName("FK_OrderDetail_Order");
 
             entity.HasOne(d => d.Product).WithMany()
                 .HasForeignKey(d => d.ProductId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_OrderItem_Product");
+        });
+
+        modelBuilder.Entity<Payment>(entity =>
+        {
+            entity.HasKey(e => e.PayId).HasName("PK_Payment'");
+
+            entity.ToTable("Payment");
+
+            entity.Property(e => e.PayId)
+                .ValueGeneratedNever()
+                .HasColumnName("pay_id");
+            entity.Property(e => e.PaymentDes).HasColumnName("payment_des");
+            entity.Property(e => e.PaymentName).HasColumnName("payment_name");
         });
 
         modelBuilder.Entity<Product>(entity =>
