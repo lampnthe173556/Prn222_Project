@@ -1,6 +1,10 @@
 ﻿@*
     For more information on enabling MVC for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
 *@
+
+@{
+    var user = ViewBag.User as EcormerProjectPRN222.Models.Account;
+}
 <header class="header trans_300">
 
     <!-- Top Navigation -->
@@ -15,14 +19,17 @@
                     <div class="top_nav_right">
                         <ul class="top_nav_menu">
                             <li class="account">
-                                <a href="#">
-                                    Login
-                                    <i class="fa fa-angle-down"></i>
-                                </a>
-                                <ul class="account_selection">
-                                    <li><a href="~/Login/Index">Sign In</a></li>
-                                    <li><a href="#">Register</a></li>
-                                </ul>
+                                @if (user == null)
+                                {
+                                    <a href="~/Login/Index">
+                                        Login
+                                    </a>
+                                }else
+                                {
+                                    <a href="~/Login/Logout">
+                                        Logout
+                                    </a>
+                                }
                             </li>
                         </ul>
                     </div>
@@ -43,11 +50,15 @@
                     <nav class="navbar">
                         <ul class="navbar_menu">
                             <li><a href="~/Home/Index">home</a></li>
-                            <li><a href="~/Shop/Index">shop</a></li>                          
+                            <li><a href="~/Shop/Index">shop</a></li>
                             <li><a href="~/Contact/Index">contact</a></li>
                         </ul>
                         <ul class="navbar_user">
-                                                     
+                            @if(user != null)
+                            {
+                                <li><a href="#"><i class="fa fa-user" aria-hidden="true"></i></a></li>
+                            }
+                           
                             <li class="checkout">
                                 <a href="#">
                                     <i class="fa fa-shopping-cart" aria-hidden="true"></i>

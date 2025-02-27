@@ -1,5 +1,6 @@
 ﻿using EcormerProjectPRN222.Models;
 using Microsoft.AspNetCore.Mvc;
+using System.Text.Json;
 
 namespace EcormerProjectPRN222.Controllers
 {
@@ -19,6 +20,15 @@ namespace EcormerProjectPRN222.Controllers
             List<Product> top10ProductsNew = top4ProductsMen.Concat(top4ProductsWoman).Concat(top3ProductsChildren).ToList();
             //best saler
             List<Product> top5ProductsBestSaler = _context.Products.OrderBy(p => p.Price).Take(10).ToList();
+
+            //take to account
+            var user = HttpContext.Session.GetString("user");
+            if (user != null)
+            {
+                Account account = JsonSerializer.Deserialize<Account>(user);
+                ViewBag.User = account;
+            }
+
             ViewBag.Top10ProductsNew = top10ProductsNew;
             ViewBag.Top10ProductsBestSaler = top5ProductsBestSaler;
             return View();
