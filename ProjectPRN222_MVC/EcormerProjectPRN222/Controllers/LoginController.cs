@@ -9,13 +9,51 @@ namespace EcormerProjectPRN222.Controllers
     {
         public IActionResult Index()
         {
+            var rememberPass = Request.Cookies["rememberPass"];
+            if (rememberPass != null)
+            {
+                ViewBag.RememberPass = rememberPass;
+                var email = Request.Cookies["email"];
+                var password = Request.Cookies["password"];
+                ViewBag.Email = email;
+                ViewBag.Password = password;
+            }
             return View();
         }
         [HttpPost]
-        public IActionResult Index(string email, string password)
+        public IActionResult Index(string email, string password, string remember_me)
         {
             Account account = AccountDAO.GetAccount(email, password);
-
+            if (remember_me != null)
+            {
+                Response.Cookies.Append("email", email, new CookieOptions
+                {
+                    Expires = DateTime.UtcNow.AddDays(7),
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Lax
+                });
+                Response.Cookies.Append("password", password, new CookieOptions
+                {
+                    Expires = DateTime.UtcNow.AddDays(7),
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Lax
+                });
+                Response.Cookies.Append("rememberPass", remember_me, new CookieOptions
+                {
+                    Expires = DateTime.UtcNow.AddDays(7),
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Lax
+                });
+            }
+            else
+            {
+                Response.Cookies.Delete("email");
+                Response.Cookies.Delete("password");
+                Response.Cookies.Delete("rememberPass");
+            }
             if (account != null)
             {
                 var userJson = JsonSerializer.Serialize(account);

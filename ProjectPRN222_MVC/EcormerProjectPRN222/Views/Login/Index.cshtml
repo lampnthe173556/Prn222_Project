@@ -31,13 +31,13 @@
                                 <div class="row gy-3 overflow-hidden">
                                     <div class="col-12">
                                         <div class="form-floating mb-3">
-                                            <input type="email" class="form-control border-0 border-bottom rounded-0" name="email" id="email" placeholder="name@example.com" required>
+                                            <input type="email" class="form-control border-0 border-bottom rounded-0" name="email" id="email" value="@(ViewBag.Email)" placeholder="name@example.com" required>
                                             <label for="email" class="form-label">Email</label>
                                         </div>
                                     </div>
                                     <div class="col-12">
                                         <div class="form-floating mb-3">
-                                            <input type="password" class="form-control border-0 border-bottom rounded-0" name="password" id="password" value="" placeholder="Password" required>
+                                            <input type="password" class="form-control border-0 border-bottom rounded-0" name="password" id="password" value="@(ViewBag.Password)" placeholder="Password" required>
                                             <label for="password" class="form-label">Password</label>
                                         </div>
                                     </div>
@@ -45,7 +45,7 @@
                                         <div class="row justify-content-between">
                                             <div class="col-6">
                                                 <div class="form-check">
-                                                    <input class="form-check-input" type="checkbox" value="" name="remember_me" id="remember_me">
+                                                    <input class="form-check-input" type="checkbox" value="remember" name="remember_me" id="remember_me" @(ViewBag.RememberPass == "remember" ? "checked" : "")>
                                                     <label class="form-check-label text-secondary" for="remember_me">
                                                         Remember me
                                                     </label>
