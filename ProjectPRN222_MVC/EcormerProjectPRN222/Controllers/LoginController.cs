@@ -56,9 +56,21 @@ namespace EcormerProjectPRN222.Controllers
             }
             if (account != null)
             {
-                var userJson = JsonSerializer.Serialize(account);
-                HttpContext.Session.SetString("user", userJson);
-                return RedirectToAction("Index", "Home");
+                if(account.RoleId == 0)
+                {
+                    var userJson = JsonSerializer.Serialize(account);
+                    HttpContext.Session.SetString("user", userJson);
+                    return RedirectToAction("Index", "Home");
+                }
+                else
+                {
+                    var userJson = JsonSerializer.Serialize(account);
+                    HttpContext.Session.SetString("user", userJson);
+                    
+                    return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
+
+                }
+
             }
             else
             {
