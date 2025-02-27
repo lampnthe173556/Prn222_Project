@@ -32,7 +32,7 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
             var totalProducts = await _context.Products.CountAsync();
             var totalOrders = await _context.Orders.CountAsync();
             var totalCustomers = await _context.Accounts.Where(a => a.RoleId != 1).CountAsync(); // Assuming RoleId 1 is admin
-            var totalRevenue = await _context.Orders.Where(o => o.Status == 2).SumAsync(o => o.TotalAmount ?? 0); // Assuming Status 2 is completed
+            var totalRevenue = await _context.Orders.Where(o => o.Status == 1).SumAsync(o => o.TotalAmount ?? 0); // Assuming Status 2 is completed
 
             // Get recent orders
             var recentOrders = await _context.Orders
@@ -60,7 +60,7 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
             var orderDetails = await _context.Set<OrderDetail>()
                 .Include(od => od.Product)
                 .Include(od => od.Oder)
-                .Where(od => od.Oder.Status == 2) // Only completed orders
+                .Where(od => od.Oder.Status == 1) // Only completed orders
                 .GroupBy(od => new { od.ProductId, od.Product.ProductName, od.Product.Img })
                 .Select(g => new
                 {
@@ -75,7 +75,7 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
 
             // Get sales data for chart
             var salesData = await _context.Orders
-                .Where(o => o.Status == 2)
+                .Where(o => o.Status == 1)
                 .GroupBy(o => o.OrderDate)
                 .OrderBy(g => g.Key)
                 .Take(7)
