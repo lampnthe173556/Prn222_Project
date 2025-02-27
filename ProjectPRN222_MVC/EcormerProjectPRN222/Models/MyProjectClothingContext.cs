@@ -30,12 +30,8 @@ public partial class MyProjectClothingContext : DbContext
     public virtual DbSet<Role> Roles { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
-
-        if (!optionsBuilder.IsConfigured) { optionsBuilder.UseSqlServer(config.GetConnectionString("DBDefault")); }
-    }
-
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=(local);Database=MyProject_Clothing;UID=sa;PWD=lamlam276762;TrustServerCertificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -44,6 +40,8 @@ public partial class MyProjectClothingContext : DbContext
             entity.HasKey(e => e.UserId);
 
             entity.ToTable("Account");
+
+            entity.HasIndex(e => e.Email, "UQ_Account_email").IsUnique();
 
             entity.Property(e => e.UserId).HasColumnName("userID");
             entity.Property(e => e.Email)
@@ -79,6 +77,8 @@ public partial class MyProjectClothingContext : DbContext
 
             entity.Property(e => e.CategoryId).HasColumnName("categoryID");
             entity.Property(e => e.CategoryName).HasColumnName("categoryName");
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.Status).HasColumnName("status");
         });
 
         modelBuilder.Entity<Order>(entity =>
@@ -138,6 +138,7 @@ public partial class MyProjectClothingContext : DbContext
                 .HasColumnName("pay_id");
             entity.Property(e => e.PaymentDes).HasColumnName("payment_des");
             entity.Property(e => e.PaymentName).HasColumnName("payment_name");
+            entity.Property(e => e.Status).HasColumnName("status");
         });
 
         modelBuilder.Entity<Product>(entity =>
@@ -164,9 +165,11 @@ public partial class MyProjectClothingContext : DbContext
             entity.Property(e => e.RoleId)
                 .ValueGeneratedNever()
                 .HasColumnName("roleID");
+            entity.Property(e => e.Description).HasColumnName("description");
             entity.Property(e => e.RoleName)
                 .HasMaxLength(50)
                 .HasColumnName("roleName");
+            entity.Property(e => e.Status).HasColumnName("status");
         });
 
         OnModelCreatingPartial(modelBuilder);
