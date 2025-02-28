@@ -18,11 +18,10 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
         {
             return status switch
             {
+                -1 => "Failed",
                 0 => "Pending",
-                1 => "Processing",
-                2 => "Completed",
-                3 => "Cancelled",
-                _ => "Unknown"
+                1 => "Success",
+                
             };
         }
 
