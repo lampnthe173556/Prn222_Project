@@ -153,6 +153,7 @@ public partial class MyProjectClothingContext : DbContext
             entity.Property(e => e.ProductName)
                 .HasMaxLength(50)
                 .HasColumnName("productName");
+            entity.Property(e => e.Status).HasColumnName("status");
 
             entity.HasOne(d => d.Category).WithMany(p => p.Products)
                 .HasForeignKey(d => d.CategoryId)
