@@ -1,71 +1,305 @@
 ﻿@model IEnumerable<EcormerProjectPRN222.Models.Order>
 
-@{
-    ViewData["Title"] = "Index";
-}
+<div class="row">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Order List</h3>
+            </div>
+            <div class="card-body">
+                <table id="ordersTable" class="table table-bordered table-striped">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Date</th>
+                            <th>Customer</th>
+                            <th>Total</th>
+                            <th>Payment</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
 
-<h1>Index</h1>
+<!-- Order Details Modal -->
+<div class="modal fade" id="orderModal" tabindex="-1" role="dialog" aria-labelledby="orderModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="orderModalLabel">Order Details</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @Html.AntiForgeryToken()
+                <div class="row">
+                    <div class="col-md-6">
+                        <h6>Order Information</h6>
+                        <dl class="row">
+                            <dt class="col-sm-4">Order ID</dt>
+                            <dd class="col-sm-8" id="orderIdDisplay"></dd>
+                            <dt class="col-sm-4">Order Date</dt>
+                            <dd class="col-sm-8" id="orderDateDisplay"></dd>
+                            <dt class="col-sm-4">Total Amount</dt>
+                            <dd class="col-sm-8" id="totalAmountDisplay"></dd>
+                            <dt class="col-sm-4">Status</dt>
+                            <dd class="col-sm-8">
+                                <select class="form-control" id="orderStatus">
+                                    <option value="0">Pending</option>
+                                    <option value="1">Confirmed</option>
+                                    <option value="2">Shipping</option>
+                                    <option value="3">Completed</option>
+                                    <option value="4">Cancelled</option>
+                                </select>
+                            </dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Customer Information</h6>
+                        <dl class="row">
+                            <dt class="col-sm-4">Name</dt>
+                            <dd class="col-sm-8" id="customerNameDisplay"></dd>
+                            <dt class="col-sm-4">Email</dt>
+                            <dd class="col-sm-8" id="customerEmailDisplay"></dd>
+                            <dt class="col-sm-4">Phone</dt>
+                            <dd class="col-sm-8" id="customerPhoneDisplay"></dd>
+                            <dt class="col-sm-4">Delivery To</dt>
+                            <dd class="col-sm-8" id="deliveryAddressDisplay"></dd>
+                        </dl>
+                    </div>
+                </div>
 
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                @Html.DisplayNameFor(model => model.OrderDate)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.LocationOrder)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Status)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Comment)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.TotalAmount)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Pay)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.User)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-@foreach (var item in Model) {
-        <tr>
-            <td>
-                @Html.DisplayFor(modelItem => item.OrderDate)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.LocationOrder)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Comment)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.TotalAmount)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Pay.PayId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.User.UserId)
-            </td>
-            <td>
-                <a asp-action="Edit" asp-route-id="@item.OrderId">Edit</a> |
-                <a asp-action="Details" asp-route-id="@item.OrderId">Details</a> |
-                <a asp-action="Delete" asp-route-id="@item.OrderId">Delete</a>
-            </td>
-        </tr>
+                <h6>Order Items</h6>
+                <div class="table-responsive">
+                    <table class="table table-bordered table-sm" id="orderItemsTable">
+                        <thead>
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Subtotal</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div class="row mt-3">
+                    <div class="col-md-6">
+                        <h6>Payment Information</h6>
+                        <dl class="row">
+                            <dt class="col-sm-4">Method</dt>
+                            <dd class="col-sm-8" id="paymentMethodDisplay"></dd>
+                            <dt class="col-sm-4">Description</dt>
+                            <dd class="col-sm-8" id="paymentDescDisplay"></dd>
+                        </dl>
+                    </div>
+                    <div class="col-md-6">
+                        <h6>Additional Information</h6>
+                        <dl class="row">
+                            <dt class="col-sm-4">Comment</dt>
+                            <dd class="col-sm-8" id="commentDisplay"></dd>
+                        </dl>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" onclick="showDeleteConfirmation()">Delete</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary" onclick="updateOrderStatus()">Update Status</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">Delete Order</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this order?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" onclick="deleteOrder()">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        let table;
+        let currentOrderId = 0;
+
+        $(document).ready(function () {
+            table = $('#ordersTable').DataTable({
+                ajax: {
+                    url: '/Admin/Orders/GetOrders',
+                    type: 'GET',
+                    dataSrc: 'data'
+                },
+                columns: [
+                    { data: 'orderId' },
+                    { 
+                        data: 'orderDate',
+                        render: function(data) {
+                            return moment(data).format('DD/MM/YYYY');
+                        }
+                    },
+                    { data: 'customerName' },
+                    { 
+                        data: 'totalAmount',
+                        render: function(data) {
+                            return data ? `$${data.toFixed(2)}` : '';
+                        }
+                    },
+                    { data: 'paymentMethod' },
+                    {
+                        data: 'status',
+                        render: function (data) {
+                            const statusClasses = {
+                                0: 'secondary', // Pending
+                                1: 'info',      // Confirmed
+                                2: 'primary',   // Shipping
+                                3: 'success',   // Completed
+                                4: 'danger'     // Cancelled
+                            };
+                            const statusNames = {
+                                0: 'Pending',
+                                1: 'Confirmed',
+                                2: 'Shipping',
+                                3: 'Completed',
+                                4: 'Cancelled'
+                            };
+                            return `<span class="badge badge-${statusClasses[data]}">${statusNames[data]}</span>`;
+                        }
+                    },
+                    {
+                        data: 'orderId',
+                        render: function (data) {
+                            return `
+                                <button class="btn btn-sm btn-info" onclick="showOrderDetails(${data})">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                            `;
+                        }
+                    }
+                ],
+                order: [[0, 'desc']]
+            });
+        });
+
+        function showOrderDetails(id) {
+            currentOrderId = id;
+            $.get('/Admin/Orders/GetOrderDetails/' + id, function (response) {
+                if (response.success) {
+                    const { order, items } = response.data;
+                    
+                    // Fill order information
+                    $('#orderIdDisplay').text(order.orderId);
+                    $('#orderDateDisplay').text(moment(order.orderDate).format('DD/MM/YYYY'));
+                    $('#totalAmountDisplay').text(order.totalAmount ? `$${order.totalAmount.toFixed(2)}` : '');
+                    $('#orderStatus').val(order.status);
+                    
+                    // Fill customer information
+                    $('#customerNameDisplay').text(order.customer.fullName);
+                    $('#customerEmailDisplay').text(order.customer.email);
+                    $('#customerPhoneDisplay').text(order.customer.phone);
+                    $('#deliveryAddressDisplay').text(order.locationOrder);
+                    
+                    // Fill payment information
+                    $('#paymentMethodDisplay').text(order.payment.paymentName);
+                    $('#paymentDescDisplay').text(order.payment.paymentDes || '');
+                    $('#commentDisplay').text(order.comment || '');
+                    
+                    // Fill order items table
+                    const tbody = $('#orderItemsTable tbody');
+                    tbody.empty();
+                    items.forEach(item => {
+                        tbody.append(`
+                            <tr>
+                                <td>${item.productName}</td>
+                                <td>$${item.price.toFixed(2)}</td>
+                                <td>${item.quanity}</td>
+                                <td>$${item.subTotal.toFixed(2)}</td>
+                            </tr>
+                        `);
+                    });
+                    
+                    $('#orderModal').modal('show');
+                } else {
+                    toastr.error(response.message);
+                }
+            });
+        }
+
+        function updateOrderStatus() {
+            if (!currentOrderId) return;
+
+            const status = $('#orderStatus').val();
+            $.ajax({
+                url: '/Admin/Orders/UpdateStatus/' + currentOrderId,
+                type: 'POST',
+                data: {
+                    status: status,
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (response) {
+                    if (response.success) {
+                        $('#orderModal').modal('hide');
+                        table.ajax.reload();
+                        toastr.success(response.message);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                },
+                error: function () {
+                    toastr.error('An error occurred');
+                }
+            });
+        }
+
+        function showDeleteConfirmation() {
+            $('#orderModal').modal('hide');
+            $('#deleteModal').modal('show');
+        }
+
+        function deleteOrder() {
+            if (!currentOrderId) return;
+
+            $.ajax({
+                url: '/Admin/Orders/Delete/' + currentOrderId,
+                type: 'POST',
+                data: {
+                    __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
+                },
+                success: function (response) {
+                    $('#deleteModal').modal('hide');
+                    if (response.success) {
+                        table.ajax.reload();
+                        toastr.success(response.message);
+                    } else {
+                        toastr.error(response.message);
+                    }
+                    currentOrderId = 0;
+                },
+                error: function () {
+                    toastr.error('An error occurred');
+                    currentOrderId = 0;
+                }
+            });
+        }
+    </script>
 }
-    </tbody>
-</table>

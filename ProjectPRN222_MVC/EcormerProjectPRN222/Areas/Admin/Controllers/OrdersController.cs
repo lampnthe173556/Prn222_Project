@@ -1,11 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using EcormerProjectPRN222.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace EcormerProjectPRN222.Areas.Admin.Controllers
 {
@@ -19,152 +15,163 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
             _context = context;
         }
 
-        // GET: Admin/Orders
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var myProjectClothingContext = _context.Orders.Include(o => o.Pay).Include(o => o.User);
-            return View(await myProjectClothingContext.ToListAsync());
-        }
-
-        // GET: Admin/Orders/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var order = await _context.Orders
-                .Include(o => o.Pay)
-                .Include(o => o.User)
-                .FirstOrDefaultAsync(m => m.OrderId == id);
-            if (order == null)
-            {
-                return NotFound();
-            }
-
-            return View(order);
-        }
-
-        // GET: Admin/Orders/Create
-        public IActionResult Create()
-        {
-            ViewData["PayId"] = new SelectList(_context.Payments, "PayId", "PayId");
-            ViewData["UserId"] = new SelectList(_context.Accounts, "UserId", "UserId");
+            ViewData["Title"] = "Orders";
+            ViewData["Payments"] = new SelectList(_context.Payments, "PayId", "PaymentName");
             return View();
         }
 
-        // POST: Admin/Orders/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("OrderId,OrderDate,UserId,LocationOrder,Status,Comment,PayId,TotalAmount")] Order order)
+        [HttpGet]
+        public async Task<IActionResult> GetOrders()
         {
-            if (ModelState.IsValid)
-            {
-                _context.Add(order);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["PayId"] = new SelectList(_context.Payments, "PayId", "PayId", order.PayId);
-            ViewData["UserId"] = new SelectList(_context.Accounts, "UserId", "UserId", order.UserId);
-            return View(order);
+            var orders = await _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.Pay)
+                .Select(o => new {
+                    o.OrderId,
+                    o.OrderDate,
+                    CustomerName = o.User.FullName,
+                    o.LocationOrder,
+                    o.Status,
+                    PaymentMethod = o.Pay.PaymentName,
+                    o.TotalAmount,
+                    o.Comment
+                })
+                .OrderByDescending(o => o.OrderDate)
+                .ToListAsync();
+
+            return Json(new { data = orders });
         }
 
-        // GET: Admin/Orders/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        [HttpGet]
+        public async Task<IActionResult> GetOrderDetails(int id)
         {
-            if (id == null)
+            var order = await _context.Orders
+                .Include(o => o.User)
+                .Include(o => o.Pay)
+                .Select(o => new {
+                    o.OrderId,
+                    o.OrderDate,
+                    Customer = new {
+                        o.User.FullName,
+                        o.User.Email,
+                        o.User.Phone
+                    },
+                    o.LocationOrder,
+                    o.Status,
+                    Payment = new {
+                        o.Pay.PaymentName,
+                        o.Pay.PaymentDes
+                    },
+                    o.TotalAmount,
+                    o.Comment
+                })
+                .FirstOrDefaultAsync(o => o.OrderId == id);
+
+            if (order == null)
             {
-                return NotFound();
+                return Json(new { success = false, message = "Order not found" });
             }
 
+            var orderDetails = await _context.OrderDetails
+                .Include(od => od.Product)
+                .Where(od => od.OderId == id)
+                .Select(od => new {
+                    od.Product.ProductName,
+                    od.Product.Price,
+                    od.Quanity,
+                    SubTotal = od.Quanity * od.Product.Price
+                })
+                .ToListAsync();
+
+            return Json(new { 
+                success = true, 
+                data = new { 
+                    order,
+                    items = orderDetails
+                } 
+            });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateStatus(int id, int status)
+        {
             var order = await _context.Orders.FindAsync(id);
             if (order == null)
             {
-                return NotFound();
+                return Json(new { success = false, message = "Order not found" });
             }
-            ViewData["PayId"] = new SelectList(_context.Payments, "PayId", "PayId", order.PayId);
-            ViewData["UserId"] = new SelectList(_context.Accounts, "UserId", "UserId", order.UserId);
-            return View(order);
+
+            try
+            {
+                order.Status = status;
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Order status updated successfully" });
+            }
+            catch (Exception)
+            {
+                return Json(new { success = false, message = "Error updating order status" });
+            }
         }
 
-        // POST: Admin/Orders/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("OrderId,OrderDate,UserId,LocationOrder,Status,Comment,PayId,TotalAmount")] Order order)
+        public async Task<IActionResult> UpdateOrder(int id, [FromForm] Order order)
         {
             if (id != order.OrderId)
             {
-                return NotFound();
+                return Json(new { success = false, message = "Invalid order ID" });
             }
 
-            if (ModelState.IsValid)
+            try
             {
-                try
+                var existingOrder = await _context.Orders.FindAsync(id);
+                if (existingOrder == null)
                 {
-                    _context.Update(order);
-                    await _context.SaveChangesAsync();
+                    return Json(new { success = false, message = "Order not found" });
                 }
-                catch (DbUpdateConcurrencyException)
-                {
-                    if (!OrderExists(order.OrderId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
-                }
-                return RedirectToAction(nameof(Index));
+
+                existingOrder.LocationOrder = order.LocationOrder;
+                existingOrder.Status = order.Status;
+                existingOrder.Comment = order.Comment;
+                existingOrder.PayId = order.PayId;
+
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Order updated successfully" });
             }
-            ViewData["PayId"] = new SelectList(_context.Payments, "PayId", "PayId", order.PayId);
-            ViewData["UserId"] = new SelectList(_context.Accounts, "UserId", "UserId", order.UserId);
-            return View(order);
+            catch (DbUpdateConcurrencyException)
+            {
+                return Json(new { success = false, message = "Error updating order" });
+            }
         }
 
-        // GET: Admin/Orders/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var order = await _context.Orders
-                .Include(o => o.Pay)
-                .Include(o => o.User)
-                .FirstOrDefaultAsync(m => m.OrderId == id);
-            if (order == null)
-            {
-                return NotFound();
-            }
-
-            return View(order);
-        }
-
-        // POST: Admin/Orders/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var order = await _context.Orders.FindAsync(id);
-            if (order != null)
+            if (order == null)
             {
-                _context.Orders.Remove(order);
+                return Json(new { success = false, message = "Order not found" });
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
-        }
+            try
+            {
+                // Delete related order details first
+                var orderDetails = await _context.OrderDetails.Where(od => od.OderId == id).ToListAsync();
+                _context.OrderDetails.RemoveRange(orderDetails);
 
-        private bool OrderExists(int id)
-        {
-            return _context.Orders.Any(e => e.OrderId == id);
+                // Then delete the order
+                _context.Orders.Remove(order);
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Order deleted successfully" });
+            }
+            catch (Exception)
+            {
+                return Json(new { success = false, message = "Error deleting order" });
+            }
         }
     }
 }

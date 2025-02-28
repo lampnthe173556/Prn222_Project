@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using EcormerProjectPRN222.Models;
 
@@ -19,134 +14,94 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
             _context = context;
         }
 
-        // GET: Admin/Categories
         public async Task<IActionResult> Index()
         {
-            return View(await _context.Categories.ToListAsync());
-        }
-
-        // GET: Admin/Categories/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var category = await _context.Categories
-                .FirstOrDefaultAsync(m => m.CategoryId == id);
-            if (category == null)
-            {
-                return NotFound();
-            }
-
-            return View(category);
-        }
-
-        // GET: Admin/Categories/Create
-        public IActionResult Create()
-        {
+            ViewData["Title"] = "Categories";
             return View();
         }
 
-        // POST: Admin/Categories/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("CategoryId,CategoryName,Status,Description")] Category category)
+        [HttpGet]
+        public async Task<IActionResult> GetCategories()
         {
-            if (ModelState.IsValid)
-            {
-                _context.Add(category);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(category);
+            var categories = await _context.Categories.ToListAsync();
+            return Json(new { data = categories });
         }
 
-        // GET: Admin/Categories/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        [HttpGet]
+        public async Task<IActionResult> GetCategory(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
             var category = await _context.Categories.FindAsync(id);
             if (category == null)
             {
-                return NotFound();
+                return Json(new { success = false, message = "Category not found" });
             }
-            return View(category);
+            return Json(new { success = true, data = category });
         }
 
-        // POST: Admin/Categories/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("CategoryId,CategoryName,Status,Description")] Category category)
+        public async Task<IActionResult> Create([Bind("CategoryName,Status,Description")] Category category)
         {
-            if (id != category.CategoryId)
+            if (ModelState.IsValid)
             {
-                return NotFound();
+                try
+                {
+                    _context.Add(category);
+                    await _context.SaveChangesAsync();
+                    return Json(new { success = true, message = "Category created successfully" });
+                }
+                catch (Exception ex)
+                {
+                    return Json(new { success = false, message = "Error creating category" });
+                }
             }
+            return Json(new { success = false, message = "Invalid data" });
+        }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit([Bind("CategoryId,CategoryName,Status,Description")] Category category)
+        {
             if (ModelState.IsValid)
             {
                 try
                 {
                     _context.Update(category);
                     await _context.SaveChangesAsync();
+                    return Json(new { success = true, message = "Category updated successfully" });
                 }
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!CategoryExists(category.CategoryId))
                     {
-                        return NotFound();
+                        return Json(new { success = false, message = "Category not found" });
                     }
-                    else
-                    {
-                        throw;
-                    }
+                    throw;
                 }
-                return RedirectToAction(nameof(Index));
             }
-            return View(category);
+            return Json(new { success = false, message = "Invalid data" });
         }
 
-        // GET: Admin/Categories/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var category = await _context.Categories
-                .FirstOrDefaultAsync(m => m.CategoryId == id);
-            if (category == null)
-            {
-                return NotFound();
-            }
-
-            return View(category);
-        }
-
-        // POST: Admin/Categories/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var category = await _context.Categories.FindAsync(id);
-            if (category != null)
+            if (category == null)
             {
-                _context.Categories.Remove(category);
+                return Json(new { success = false, message = "Category not found" });
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                _context.Categories.Remove(category);
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Category deleted successfully" });
+            }
+            catch (Exception)
+            {
+                return Json(new { success = false, message = "Error deleting category" });
+            }
         }
 
         private bool CategoryExists(int id)

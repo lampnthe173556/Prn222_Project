@@ -1,9 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using EcormerProjectPRN222.Models;
 
@@ -19,134 +14,109 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
             _context = context;
         }
 
-        // GET: Admin/Payments
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            return View(await _context.Payments.ToListAsync());
-        }
-
-        // GET: Admin/Payments/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var payment = await _context.Payments
-                .FirstOrDefaultAsync(m => m.PayId == id);
-            if (payment == null)
-            {
-                return NotFound();
-            }
-
-            return View(payment);
-        }
-
-        // GET: Admin/Payments/Create
-        public IActionResult Create()
-        {
+            ViewData["Title"] = "Payments";
             return View();
         }
 
-        // POST: Admin/Payments/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("PayId,PaymentName,PaymentDes,Status")] Payment payment)
+        [HttpGet]
+        public async Task<IActionResult> GetPayments()
         {
-            if (ModelState.IsValid)
-            {
-                _context.Add(payment);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(payment);
+            var payments = await _context.Payments
+                .Select(p => new {
+                    p.PayId,
+                    p.PaymentName,
+                    p.PaymentDes,
+                    p.Status,
+                    OrderCount = p.Orders.Count
+                })
+                .ToListAsync();
+
+            return Json(new { data = payments });
         }
 
-        // GET: Admin/Payments/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        [HttpGet]
+        public async Task<IActionResult> GetPayment(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
             var payment = await _context.Payments.FindAsync(id);
             if (payment == null)
             {
-                return NotFound();
+                return Json(new { success = false, message = "Payment not found" });
             }
-            return View(payment);
+            return Json(new { success = true, data = payment });
         }
 
-        // POST: Admin/Payments/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("PayId,PaymentName,PaymentDes,Status")] Payment payment)
+        public async Task<IActionResult> Create([Bind("PaymentName,PaymentDes,Status")] Payment payment)
         {
-            if (id != payment.PayId)
+            if (ModelState.IsValid)
             {
-                return NotFound();
+                try
+                {
+                    _context.Add(payment);
+                    await _context.SaveChangesAsync();
+                    return Json(new { success = true, message = "Payment method created successfully" });
+                }
+                catch (Exception)
+                {
+                    return Json(new { success = false, message = "Error creating payment method" });
+                }
             }
+            return Json(new { success = false, message = "Invalid data" });
+        }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit([Bind("PayId,PaymentName,PaymentDes,Status")] Payment payment)
+        {
             if (ModelState.IsValid)
             {
                 try
                 {
                     _context.Update(payment);
                     await _context.SaveChangesAsync();
+                    return Json(new { success = true, message = "Payment method updated successfully" });
                 }
                 catch (DbUpdateConcurrencyException)
                 {
                     if (!PaymentExists(payment.PayId))
                     {
-                        return NotFound();
+                        return Json(new { success = false, message = "Payment method not found" });
                     }
-                    else
-                    {
-                        throw;
-                    }
+                    throw;
                 }
-                return RedirectToAction(nameof(Index));
             }
-            return View(payment);
+            return Json(new { success = false, message = "Invalid data" });
         }
 
-        // GET: Admin/Payments/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var payment = await _context.Payments
-                .FirstOrDefaultAsync(m => m.PayId == id);
-            if (payment == null)
-            {
-                return NotFound();
-            }
-
-            return View(payment);
-        }
-
-        // POST: Admin/Payments/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var payment = await _context.Payments.FindAsync(id);
-            if (payment != null)
+            if (payment == null)
             {
-                _context.Payments.Remove(payment);
+                return Json(new { success = false, message = "Payment method not found" });
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                // Check if payment method is being used in orders
+                if (await _context.Orders.AnyAsync(o => o.PayId == id))
+                {
+                    return Json(new { success = false, message = "Cannot delete payment method that is being used in orders" });
+                }
+
+                _context.Payments.Remove(payment);
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Payment method deleted successfully" });
+            }
+            catch (Exception)
+            {
+                return Json(new { success = false, message = "Error deleting payment method" });
+            }
         }
 
         private bool PaymentExists(int id)

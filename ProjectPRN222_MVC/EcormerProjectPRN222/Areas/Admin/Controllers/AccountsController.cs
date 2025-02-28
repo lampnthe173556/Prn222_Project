@@ -1,11 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.Rendering;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using EcormerProjectPRN222.Models;
+using Microsoft.AspNetCore.Mvc.Rendering;
+using System.Security.Cryptography;
+using System.Text;
 
 namespace EcormerProjectPRN222.Areas.Admin.Controllers
 {
@@ -19,146 +17,164 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
             _context = context;
         }
 
-        // GET: Admin/Accounts
-        public async Task<IActionResult> Index()
+        public IActionResult Index()
         {
-            var myProjectClothingContext = _context.Accounts.Include(a => a.Role);
-            return View(await myProjectClothingContext.ToListAsync());
-        }
-
-        // GET: Admin/Accounts/Details/5
-        public async Task<IActionResult> Details(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var account = await _context.Accounts
-                .Include(a => a.Role)
-                .FirstOrDefaultAsync(m => m.UserId == id);
-            if (account == null)
-            {
-                return NotFound();
-            }
-
-            return View(account);
-        }
-
-        // GET: Admin/Accounts/Create
-        public IActionResult Create()
-        {
-            ViewData["RoleId"] = new SelectList(_context.Roles, "RoleId", "RoleId");
+            ViewData["Title"] = "Accounts";
+            ViewData["Roles"] = new SelectList(_context.Roles, "RoleId", "RoleName");
             return View();
         }
 
-        // POST: Admin/Accounts/Create
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([Bind("UserId,Username,Password,FullName,Email,Phone,Location,RoleId,Status")] Account account)
+        [HttpGet]
+        public async Task<IActionResult> GetAccounts()
         {
-            if (ModelState.IsValid)
-            {
-                _context.Add(account);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            ViewData["RoleId"] = new SelectList(_context.Roles, "RoleId", "RoleId", account.RoleId);
-            return View(account);
+            var accounts = await _context.Accounts
+                .Include(a => a.Role)
+                .Select(a => new {
+                    a.UserId,
+                    a.Username,
+                    a.FullName,
+                    a.Email,
+                    a.Phone,
+                    a.Location,
+                    a.RoleId,
+                    RoleName = a.Role.RoleName,
+                    a.Status
+                })
+                .ToListAsync();
+
+            return Json(new { data = accounts });
         }
 
-        // GET: Admin/Accounts/Edit/5
-        public async Task<IActionResult> Edit(int? id)
+        [HttpGet]
+        public async Task<IActionResult> GetAccount(int id)
         {
-            if (id == null)
-            {
-                return NotFound();
-            }
+            var account = await _context.Accounts
+                .Select(a => new {
+                    a.UserId,
+                    a.Username,
+                    a.FullName,
+                    a.Email,
+                    a.Phone,
+                    a.Location,
+                    a.RoleId,
+                    a.Status
+                })
+                .FirstOrDefaultAsync(a => a.UserId == id);
 
-            var account = await _context.Accounts.FindAsync(id);
             if (account == null)
             {
-                return NotFound();
+                return Json(new { success = false, message = "Account not found" });
             }
-            ViewData["RoleId"] = new SelectList(_context.Roles, "RoleId", "RoleId", account.RoleId);
-            return View(account);
+
+            return Json(new { success = true, data = account });
         }
 
-        // POST: Admin/Accounts/Edit/5
-        // To protect from overposting attacks, enable the specific properties you want to bind to.
-        // For more details, see http://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(int id, [Bind("UserId,Username,Password,FullName,Email,Phone,Location,RoleId,Status")] Account account)
+        public async Task<IActionResult> Create([FromForm] Account account)
         {
-            if (id != account.UserId)
-            {
-                return NotFound();
-            }
-
             if (ModelState.IsValid)
             {
                 try
                 {
-                    _context.Update(account);
+                    // Check if username already exists
+                    if (await _context.Accounts.AnyAsync(a => a.Username == account.Username))
+                    {
+                        return Json(new { success = false, message = "Username already exists" });
+                    }
+
+                    // Hash password
+                    account.Password = HashPassword(account.Password);
+                    
+                    _context.Add(account);
                     await _context.SaveChangesAsync();
+                    return Json(new { success = true, message = "Account created successfully" });
+                }
+                catch (Exception)
+                {
+                    return Json(new { success = false, message = "Error creating account" });
+                }
+            }
+            return Json(new { success = false, message = "Invalid data" });
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit([FromForm] Account account, string? newPassword)
+        {
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var existingAccount = await _context.Accounts.FindAsync(account.UserId);
+                    if (existingAccount == null)
+                    {
+                        return Json(new { success = false, message = "Account not found" });
+                    }
+
+                    // Check username uniqueness if changed
+                    if (existingAccount.Username != account.Username)
+                    {
+                        if (await _context.Accounts.AnyAsync(a => a.Username == account.Username))
+                        {
+                            return Json(new { success = false, message = "Username already exists" });
+                        }
+                    }
+
+                    // Update password if provided
+                    if (!string.IsNullOrEmpty(newPassword))
+                    {
+                        existingAccount.Password = HashPassword(newPassword);
+                    }
+
+                    existingAccount.Username = account.Username;
+                    existingAccount.FullName = account.FullName;
+                    existingAccount.Email = account.Email;
+                    existingAccount.Phone = account.Phone;
+                    existingAccount.Location = account.Location;
+                    existingAccount.RoleId = account.RoleId;
+                    existingAccount.Status = account.Status;
+
+                    await _context.SaveChangesAsync();
+                    return Json(new { success = true, message = "Account updated successfully" });
                 }
                 catch (DbUpdateConcurrencyException)
                 {
-                    if (!AccountExists(account.UserId))
-                    {
-                        return NotFound();
-                    }
-                    else
-                    {
-                        throw;
-                    }
+                    return Json(new { success = false, message = "Update failed" });
                 }
-                return RedirectToAction(nameof(Index));
             }
-            ViewData["RoleId"] = new SelectList(_context.Roles, "RoleId", "RoleId", account.RoleId);
-            return View(account);
+            return Json(new { success = false, message = "Invalid data" });
         }
 
-        // GET: Admin/Accounts/Delete/5
-        public async Task<IActionResult> Delete(int? id)
-        {
-            if (id == null)
-            {
-                return NotFound();
-            }
-
-            var account = await _context.Accounts
-                .Include(a => a.Role)
-                .FirstOrDefaultAsync(m => m.UserId == id);
-            if (account == null)
-            {
-                return NotFound();
-            }
-
-            return View(account);
-        }
-
-        // POST: Admin/Accounts/Delete/5
-        [HttpPost, ActionName("Delete")]
+        [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteConfirmed(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             var account = await _context.Accounts.FindAsync(id);
-            if (account != null)
+            if (account == null)
             {
-                _context.Accounts.Remove(account);
+                return Json(new { success = false, message = "Account not found" });
             }
 
-            await _context.SaveChangesAsync();
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                _context.Accounts.Remove(account);
+                await _context.SaveChangesAsync();
+                return Json(new { success = true, message = "Account deleted successfully" });
+            }
+            catch (Exception)
+            {
+                return Json(new { success = false, message = "Error deleting account" });
+            }
         }
 
-        private bool AccountExists(int id)
+        private string HashPassword(string password)
         {
-            return _context.Accounts.Any(e => e.UserId == id);
+            using (var sha256 = SHA256.Create())
+            {
+                var hashedBytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
+                return Convert.ToBase64String(hashedBytes);
+            }
         }
     }
 }
