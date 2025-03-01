@@ -5,11 +5,6 @@
         <div class="card">
             <div class="card-header">
                 <h3 class="card-title">Account List</h3>
-                <div class="card-tools">
-                    <button type="button" class="btn btn-primary" onclick="showCreateModal()">
-                        <i class="fas fa-plus"></i> Create New
-                    </button>
-                </div>
             </div>
             <div class="card-body">
                 <table id="accountsTable" class="table table-bordered table-striped">
@@ -31,115 +26,91 @@
     </div>
 </div>
 
-<!-- Create/Edit Modal -->
+<!-- Details Modal -->
 <div class="modal fade" id="accountModal" tabindex="-1" role="dialog" aria-labelledby="accountModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="accountModalLabel">Account</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <form id="accountForm" onsubmit="saveAccount(event)">
-                <div class="modal-body">
-                    @Html.AntiForgeryToken()
-                    <input type="hidden" id="userId" name="UserId" />
-                    
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="username">Username</label>
-                                <input type="text" class="form-control" id="username" name="Username" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="password" id="passwordLabel">Password</label>
-                                <input type="password" class="form-control" id="password" name="Password">
-                                <small class="form-text text-muted" id="passwordHelp"></small>
-                            </div>
-                            <div class="form-group" id="confirmPasswordGroup">
-                                <label for="confirmPassword">Confirm Password</label>
-                                <input type="password" class="form-control" id="confirmPassword">
-                            </div>
-                            <div class="form-group">
-                                <label for="fullName">Full Name</label>
-                                <input type="text" class="form-control" id="fullName" name="FullName" required>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="email">Email</label>
-                                <input type="email" class="form-control" id="email" name="Email" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="phone">Phone</label>
-                                <input type="tel" class="form-control" id="phone" name="Phone" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="location">Location</label>
-                                <input type="text" class="form-control" id="location" name="Location" required>
-                            </div>
-                            <div class="form-group">
-                                <label for="roleId">Role</label>
-                                <select class="form-control select2" id="roleId" name="RoleId" required>
-                                    @foreach (var item in ViewData["Roles"] as SelectList)
-                                    {
-                                        <option value="@item.Value">@item.Text</option>
-                                    }
-                                </select>
-                            </div>
-                            <div class="form-group">
-                                <label for="status">Status</label>
-                                <select class="form-control" id="status" name="Status">
-                                    <option value="1">Active</option>
-                                    <option value="0">Inactive</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button type="submit" class="btn btn-primary">Save</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteModalLabel">Delete Account</h5>
+                <h5 class="modal-title" id="accountModalLabel">Account Details</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body">
-                <p>Are you sure you want to delete this account?</p>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Username</label>
+                            <p id="username" class="form-control-static"></p>
+                        </div>
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <p id="fullName" class="form-control-static"></p>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <p id="email" class="form-control-static"></p>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Phone</label>
+                            <p id="phone" class="form-control-static"></p>
+                        </div>
+                        <div class="form-group">
+                            <label>Location</label>
+                            <p id="location" class="form-control-static"></p>
+                        </div>
+                        <div class="form-group">
+                            <label>Role</label>
+                            <p id="roleName" class="form-control-static"></p>
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <p id="statusText" class="form-control-static"></p>
+                        </div>
+                    </div>
+                </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" onclick="deleteAccount()">Delete</button>
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
             </div>
         </div>
     </div>
 </div>
 
-@section Scripts {
+<!-- Status Change Confirmation Modal -->
+<div class="modal fade" id="statusModal" tabindex="-1" role="dialog" aria-labelledby="statusModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="statusModalLabel">Confirm Status Change</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                @Html.AntiForgeryToken()
+                <p>Are you sure you want to change this account's status to <span id="newStatusText"></span>?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="confirmStatusChange()">Confirm</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts 
+{
     <script>
         let table;
-        let deleteId = 0;
-        let isEditMode = false;
+        let statusChangeData = {
+            userId: 0,
+            newStatus: 0
+        };
 
         $(document).ready(function () {
-            // Initialize Select2
-            $('.select2').select2({
-                theme: 'bootstrap4'
-            });
-
             // Initialize DataTable
             table = $('#accountsTable').DataTable({
                 ajax: {
@@ -156,61 +127,40 @@
                     { data: 'roleName' },
                     {
                         data: 'status',
-                        render: function (data) {
-                            return data == 1 ? 
-                                '<span class="badge badge-success">Active</span>' : 
-                                '<span class="badge badge-danger">Inactive</span>';
+                        render: function (data, type, row) {
+                            const isChecked = data == 1 ? 'checked' : '';
+                            return `
+                                <div class="custom-control custom-switch">
+                                    <input type="checkbox" class="custom-control-input" id="statusSwitch_${row.userId}" ${isChecked} 
+                                           onchange="showStatusConfirmation(${row.userId}, this)">
+                                    <label class="custom-control-label" for="statusSwitch_${row.userId}"></label>
+                                </div>`;
                         }
                     },
                     {
                         data: 'userId',
                         render: function (data) {
                             return `
-                                <button class="btn btn-sm btn-info" onclick="showEditModal(${data})">
-                                    <i class="fas fa-edit"></i>
-                                </button>
-                                <button class="btn btn-sm btn-danger" onclick="showDeleteModal(${data})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
-                            `;
+                                <button class="btn btn-sm btn-info" onclick="showDetails(${data})">
+                                    <i class="fas fa-eye"></i> Details
+                                </button>`;
                         }
                     }
                 ]
             });
         });
 
-        function showCreateModal() {
-            isEditMode = false;
-            $('#userId').val('');
-            $('#accountForm')[0].reset();
-            $('#passwordLabel').text('Password');
-            $('#password').prop('required', true);
-            $('#confirmPassword').prop('required', true);
-            $('#confirmPasswordGroup').show();
-            $('#passwordHelp').text('');
-            $('#accountModalLabel').text('Create Account');
-            $('#accountModal').modal('show');
-        }
-
-        function showEditModal(id) {
-            isEditMode = true;
+        function showDetails(id) {
             $.get('/Admin/Accounts/GetAccount/' + id, function (response) {
                 if (response.success) {
                     const account = response.data;
-                    $('#userId').val(account.userId);
-                    $('#username').val(account.username);
-                    $('#fullName').val(account.fullName);
-                    $('#email').val(account.email);
-                    $('#phone').val(account.phone);
-                    $('#location').val(account.location);
-                    $('#roleId').val(account.roleId).trigger('change');
-                    $('#status').val(account.status);
-                    $('#password').prop('required', false);
-                    $('#confirmPassword').prop('required', false);
-                    $('#confirmPasswordGroup').hide();
-                    $('#passwordLabel').text('New Password (leave blank to keep current)');
-                    $('#passwordHelp').text('Leave blank to keep current password');
-                    $('#accountModalLabel').text('Edit Account');
+                    $('#username').text(account.username);
+                    $('#fullName').text(account.fullName);
+                    $('#email').text(account.email);
+                    $('#phone').text(account.phone);
+                    $('#location').text(account.location);
+                    $('#roleName').text(account.roleName);
+                    $('#statusText').text(account.status == 1 ? 'Active' : 'Inactive');
                     $('#accountModal').modal('show');
                 } else {
                     toastr.error(response.message);
@@ -218,83 +168,38 @@
             });
         }
 
-        function showDeleteModal(id) {
-            deleteId = id;
-            $('#deleteModal').modal('show');
+        function showStatusConfirmation(userId, checkbox) {
+            // Revert the checkbox state as we'll handle it after confirmation
+            checkbox.checked = !checkbox.checked;
+            
+            statusChangeData.userId = userId;
+            statusChangeData.newStatus = checkbox.checked ? 0 : 1;
+            
+            $('#newStatusText').text(statusChangeData.newStatus == 1 ? 'Active' : 'Inactive');
+            $('#statusModal').modal('show');
         }
 
-        function validatePasswords() {
-            const password = $('#password').val();
-            const confirmPassword = $('#confirmPassword').val();
-            
-            if (!isEditMode || (isEditMode && password)) {
-                if (password !== confirmPassword) {
-                    toastr.error('Passwords do not match');
-                    return false;
-                }
-            }
-            return true;
-        }
-
-        function saveAccount(e) {
-            e.preventDefault();
-            
-            if (!validatePasswords()) {
-                return;
-            }
-
-            const form = $('#accountForm');
-            const id = $('#userId').val();
-            const url = id ? '/Admin/Accounts/Edit' : '/Admin/Accounts/Create';
-            
-            const formData = new FormData(form[0]);
-            if (id && $('#password').val()) {
-                formData.append('newPassword', $('#password').val());
-            }
-            
+        function confirmStatusChange() {
             $.ajax({
-                url: url,
-                type: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                success: function (response) {
-                    if (response.success) {
-                        $('#accountModal').modal('hide');
-                        table.ajax.reload();
-                        toastr.success(response.message);
-                    } else {
-                        toastr.error(response.message);
-                    }
-                },
-                error: function () {
-                    toastr.error('An error occurred');
-                }
-            });
-        }
-
-        function deleteAccount() {
-            if (!deleteId) return;
-
-            $.ajax({
-                url: '/Admin/Accounts/Delete/' + deleteId,
+                url: '/Admin/Accounts/UpdateStatus',
                 type: 'POST',
                 data: {
+                    id: statusChangeData.userId,
+                    status: statusChangeData.newStatus,
                     __RequestVerificationToken: $('input[name="__RequestVerificationToken"]').val()
                 },
                 success: function (response) {
-                    $('#deleteModal').modal('hide');
+                    $('#statusModal').modal('hide');
                     if (response.success) {
                         table.ajax.reload();
                         toastr.success(response.message);
                     } else {
                         toastr.error(response.message);
                     }
-                    deleteId = 0;
                 },
                 error: function () {
-                    toastr.error('An error occurred');
-                    deleteId = 0;
+                    $('#statusModal').modal('hide');
+                    toastr.error('An error occurred while updating status');
                 }
             });
         }
