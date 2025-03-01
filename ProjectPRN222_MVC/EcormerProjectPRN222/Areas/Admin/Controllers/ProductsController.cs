@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿using Microsoft.AspNetCore.Mvc;
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using EcormerProjectPRN222.Models;
@@ -90,24 +90,29 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit([Bind("ProductId,ProductName,Price,Description,CategoryId,Status")] Product product, IFormFile imageFile)
+        public async Task<IActionResult> Edit([Bind("ProductId,ProductName,Price,Description,CategoryId,Status")] Product product, IFormFile? imageFile = null)
         {
             if (ModelState.IsValid)
             {
                 try
                 {
-                    var existingProduct = await _context.Products.FindAsync(product.ProductId);
+                    var existingProduct = await _context.Products.AsNoTracking().FirstOrDefaultAsync(p => p.ProductId == product.ProductId);
                     if (existingProduct == null)
                     {
                         return Json(new { success = false, message = "Product not found" });
                     }
 
-                    // Update basic properties
-                    existingProduct.ProductName = product.ProductName;
-                    existingProduct.Price = product.Price;
-                    existingProduct.Description = product.Description;
-                    existingProduct.CategoryId = product.CategoryId;
-                    existingProduct.Status = product.Status;
+                    // Create new product with existing properties
+                    var updatedProduct = new Product
+                    {
+                        ProductId = product.ProductId,
+                        ProductName = product.ProductName,
+                        Price = product.Price,
+                        Description = product.Description,
+                        CategoryId = product.CategoryId,
+                        Status = product.Status,
+                        Img = existingProduct.Img // Preserve existing image path
+                    };
 
                     // Only update image if a new one is provided
                     if (imageFile != null && imageFile.Length > 0)
@@ -132,10 +137,10 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
                             await imageFile.CopyToAsync(fileStream);
                         }
                         
-                        existingProduct.Img = "/uploads/products/" + uniqueFileName;
+                        updatedProduct.Img = "/uploads/products/" + uniqueFileName;
                     }
 
-                    _context.Update(existingProduct);
+                    _context.Entry(updatedProduct).State = EntityState.Modified;
                     await _context.SaveChangesAsync();
                     return Json(new { success = true, message = "Product updated successfully" });
                 }

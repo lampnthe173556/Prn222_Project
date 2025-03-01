@@ -51,10 +51,10 @@
                             <dd class="col-sm-8">
                                 <select class="form-control" id="orderStatus">
                                     <option value="0">Pending</option>
-                                    <option value="1">Confirmed</option>
-                                    <option value="2">Shipping</option>
-                                    <option value="3">Completed</option>
-                                    <option value="4">Cancelled</option>
+                                    @* <option value="1">Confirmed</option> *@
+                                    @* <option value="2">Shipping</option> *@
+                                    <option value="1">Completed</option>
+                                    <option value="-1">Cancelled</option>
                                 </select>
                             </dd>
                         </dl>
@@ -170,18 +170,18 @@
                         data: 'status',
                         render: function (data) {
                             const statusClasses = {
-                                0: 'secondary', // Pending
-                                1: 'info',      // Confirmed
-                                2: 'primary',   // Shipping
-                                3: 'success',   // Completed
-                                4: 'danger'     // Cancelled
+                                '0': 'secondary', // Pending
+                                // 1: 'info',      Confirmed
+                                // 2: 'primary',   Shipping
+                                '1': 'success',   // Completed
+                                '-1': 'danger'     // Cancelled
                             };
                             const statusNames = {
-                                0: 'Pending',
-                                1: 'Confirmed',
-                                2: 'Shipping',
-                                3: 'Completed',
-                                4: 'Cancelled'
+                                '0': 'Pending',
+                                // 1: 'Confirmed',
+                                // 2: 'Shipping',
+                                '1': 'Completed',
+                                '-1': 'Cancelled'
                             };
                             return `<span class="badge badge-${statusClasses[data]}">${statusNames[data]}</span>`;
                         }

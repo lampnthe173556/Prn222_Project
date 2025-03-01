@@ -71,7 +71,7 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create([FromForm] Account account)
+        public async Task<IActionResult> Create([Bind("Username,FullName,Email,Phone,Location,RoleId,Password,Status")] Account account)
         {
             if (ModelState.IsValid)
             {
@@ -84,7 +84,7 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
                     }
 
                     // Hash password
-                    account.Password = HashPassword(account.Password);
+                    //account.Password = HashPassword(account.Password);
                     
                     _context.Add(account);
                     await _context.SaveChangesAsync();
