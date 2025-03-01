@@ -1,4 +1,4 @@
-﻿@using EcormerProjectPRN222.Models
+﻿﻿﻿﻿﻿﻿@using EcormerProjectPRN222.Models
 @model IEnumerable<EcormerProjectPRN222.Models.Product>
 
 <div class="row">
@@ -176,6 +176,8 @@
             $('#productId').val('');
             $('#productForm')[0].reset();
             $('#currentImage').hide();
+            $('#previewImage').attr('src', '');
+            $('#imageFile').val('');
             $('#productModalLabel').text('Create Product');
             $('#productModal').modal('show');
         }
@@ -190,12 +192,17 @@
                     $('#categoryId').val(product.categoryId);
                     $('#status').val(product.status);
                     $('#description').val(product.description);
+                    
+                    // Clear file input and handle image preview
+                    $('#imageFile').val('');
                     if (product.img) {
                         $('#previewImage').attr('src', product.img);
                         $('#currentImage').show();
                     } else {
+                        $('#previewImage').attr('src', '');
                         $('#currentImage').hide();
                     }
+                    
                     $('#productModalLabel').text('Edit Product');
                     $('#productModal').modal('show');
                 } else {
@@ -215,6 +222,11 @@
             const formData = new FormData(form);
             const id = $('#productId').val();
             const url = id ? '/Admin/Products/Edit' : '/Admin/Products/Create';
+            
+            // Remove image file from formData if no new file is selected
+            if (id && !$('#imageFile')[0].files.length) {
+                formData.delete('imageFile');
+            }
             
             $.ajax({
                 url: url,

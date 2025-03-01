@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿﻿﻿﻿﻿﻿﻿﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using EcormerProjectPRN222.Models;
@@ -102,16 +102,19 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
                         return Json(new { success = false, message = "Product not found" });
                     }
 
-                    if (imageFile != null)
+                    // Update basic properties
+                    existingProduct.ProductName = product.ProductName;
+                    existingProduct.Price = product.Price;
+                    existingProduct.Description = product.Description;
+                    existingProduct.CategoryId = product.CategoryId;
+                    existingProduct.Status = product.Status;
+
+                    // Only update image if a new one is provided
+                    if (imageFile != null && imageFile.Length > 0)
                     {
                         string uploadsFolder = Path.Combine(_webHostEnvironment.WebRootPath, "uploads/products");
                         string uniqueFileName = Guid.NewGuid().ToString() + "_" + imageFile.FileName;
                         string filePath = Path.Combine(uploadsFolder, uniqueFileName);
-                        
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
-                        {
-                            await imageFile.CopyToAsync(fileStream);
-                        }
                         
                         // Delete old image if exists
                         if (!string.IsNullOrEmpty(existingProduct.Img))
@@ -122,16 +125,17 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
                                 System.IO.File.Delete(oldImagePath);
                             }
                         }
+
+                        // Save new image
+                        using (var fileStream = new FileStream(filePath, FileMode.Create))
+                        {
+                            await imageFile.CopyToAsync(fileStream);
+                        }
                         
                         existingProduct.Img = "/uploads/products/" + uniqueFileName;
                     }
 
-                    existingProduct.ProductName = product.ProductName;
-                    existingProduct.Price = product.Price;
-                    existingProduct.Description = product.Description;
-                    existingProduct.CategoryId = product.CategoryId;
-                    existingProduct.Status = product.Status;
-
+                    _context.Update(existingProduct);
                     await _context.SaveChangesAsync();
                     return Json(new { success = true, message = "Product updated successfully" });
                 }
