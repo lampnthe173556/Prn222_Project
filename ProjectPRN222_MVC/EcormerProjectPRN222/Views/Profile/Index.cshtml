@@ -1,0 +1,88 @@
+﻿@model EcormerProjectPRN222.Models.Account
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile</title>
+    <link rel="stylesheet" href="~/styles/bootstrap4/bootstrap.min.css">
+    <link rel="stylesheet" href="~/plugins/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="~/styles/main_styles.css">
+    <link rel="stylesheet" href="~/styles/responsive.css">
+    <style>
+        .profile-card {
+            max-width: 500px;
+            margin: 50px auto;
+            padding: 20px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            background: white;
+        }
+
+            .profile-card h4 {
+                text-align: center;
+                margin-bottom: 20px;
+            }
+
+            .profile-card dt {
+                font-weight: bold;
+                color: #555;
+            }
+
+            .profile-card .btn {
+                width: 48%;
+            }
+
+    </style>
+</head>
+<body class="bg-light">
+    @Html.Partial("~/Views/ParticalView/Header.cshtml")
+    <br>
+    <br>
+    <br>
+
+    <h2>You're wellcome ! </h2>
+
+    <div class="container">
+        <div class="profile-card bg-white p-4">
+            <h4><i class="fa fa-user-circle"></i> Account Profile</h4>
+            <hr />
+            <dl class="row">
+                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Username)</dt>
+                <dd class="col-sm-8">@Html.DisplayFor(model => model.Username)</dd>
+
+                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Email)</dt>
+                <dd class="col-sm-8">@Html.DisplayFor(model => model.Email)</dd>
+
+                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.FullName)</dt>
+                <dd class="col-sm-8">@Html.DisplayFor(model => model.FullName)</dd>
+
+                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Phone)</dt>
+                <dd class="col-sm-8">@Html.DisplayFor(model => model.Phone)</dd>
+
+                <dt class="col-sm-4">@Html.DisplayNameFor(model => model.Location)</dt>
+                <dd class="col-sm-8">@Html.DisplayFor(model => model.Location)</dd>
+            </dl>
+            <div class="text-center mt-4">
+                <a href="@Url.Action("Edit", "Profile")" class="btn btn-primary">
+                    <i class="fa fa-pencil"></i> Edit
+                </a>
+                <a href="@Url.Action("Delete", "Profile")" class="btn btn-danger">
+                    <i class="fa fa-trash"></i> Delete
+                </a>
+                <a href="@Url.Action("ChangePassword", "Profile")" class="btn btn-warning">
+                    <i class="fa fa-key"></i> Change Password
+                </a>
+            </div>
+        </div>
+    </div>
+
+    @Html.Partial("~/Views/ParticalView/Footer.cshtml")
+
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <script src="~/styles/bootstrap4/popper.js"></script>
+    <script src="~/styles/bootstrap4/bootstrap.min.js"></script>
+    <script src="~/js/custom.js"></script>
+</body>
+</html>
