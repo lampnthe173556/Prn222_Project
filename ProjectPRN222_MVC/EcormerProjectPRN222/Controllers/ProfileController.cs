@@ -71,8 +71,7 @@ namespace EcormerProjectPRN222.Controllers
                 }
 
                 // Cập nhật giá trị mới vào tài khoản đang tracking
-
-                existingAccount.FullName = account.FullName;
+                existingAccount.Username = account.Username;
                 existingAccount.Email = account.Email;
                 existingAccount.Phone = account.Phone;
                 existingAccount.Location = account.Location;
@@ -102,50 +101,48 @@ namespace EcormerProjectPRN222.Controllers
         }
 
         // GET: Profile/Delete
-        public IActionResult Delete()
-        {
-            var userJson = HttpContext.Session.GetString("user");
-            if (userJson == null)
-            {
-                return RedirectToAction("Index", "Login");
-            }
-
-            var user = JsonSerializer.Deserialize<Account>(userJson);
-            ViewBag.User = user;
-
-            var account = _context.Accounts.Find(user.UserId);
-            if (account == null)
-            {
-                HttpContext.Session.Remove("user");
-                return RedirectToAction("Index", "Login");
-            }
-
-            return View(account);
-        }
-
+        
         // POST: Profile/Delete
         [HttpPost, ActionName("Delete")]
-        [ValidateAntiForgeryToken]
-        public IActionResult DeleteConfirmed()
+        public IActionResult Delete()
         {
-            var userJson = HttpContext.Session.GetString("user");
-            if (userJson != null)
+            try
             {
-                var user = JsonSerializer.Deserialize<Account>(userJson);
-                ViewBag.User = user;
-
-                var account = _context.Accounts.Find(user.UserId);
-
-                if (account != null)
+                var userJson = HttpContext.Session.GetString("user");
+                if (userJson == null)
                 {
-                    _context.Accounts.Remove(account);
-                    _context.SaveChanges();
-                    HttpContext.Session.Remove("user");
+                    return RedirectToAction("Index", "Login");
                 }
+
+                var user = JsonSerializer.Deserialize<Account>(userJson);
+                var account = _context.Accounts.Find(user.UserId);                
+
+                // Cập nhật giá trị mới vào tài khoản đang tracking
+               
+                account.Status = 0;
+                _context.Accounts.Update(account);
+
+                _context.SaveChanges();
+
+                // Cập nhật session
+
+                HttpContext.Session.Remove("user");
+                return RedirectToAction("Index");
+            }
+            catch (DbUpdateException ex)
+            {
+                // Log the error (uncomment ex variable name and write a log.)
+                ViewBag.UpdateStatus = "Fail: " + ex.InnerException?.Message;
+            }
+            catch (Exception ex)
+            {
+                ViewBag.UpdateStatus = "Fail: " + ex.Message;
             }
 
-            return RedirectToAction("Index", "Home");
+            return View();
         }
+
+       
         //GET: change pass
         public IActionResult ChangePassword()
         {
@@ -190,7 +187,7 @@ namespace EcormerProjectPRN222.Controllers
                     HttpContext.Session.SetString("user", userJsonUpdated);
 
                 }
-                if(newPassword.Equals(confirmPassword)) 
+                if(!newPassword.Equals(confirmPassword)) 
                 {
                     var userJson = HttpContext.Session.GetString("user");
                     var user = JsonSerializer.Deserialize<Account>(userJson);
@@ -226,6 +223,7 @@ namespace EcormerProjectPRN222.Controllers
                     userJson = JsonSerializer.Serialize(existingAccount);
                     HttpContext.Session.SetString("user", userJson);
                     user = JsonSerializer.Deserialize<Account>(userJson);
+                    ViewBag.UpdateStatus = "Success";
 
                     ViewBag.User = user;
 
