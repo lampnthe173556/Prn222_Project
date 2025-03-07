@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿@using EcormerProjectPRN222.Models
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿@using EcormerProjectPRN222.Models
 @model IEnumerable<EcormerProjectPRN222.Models.Product>
 
 <div class="row">
@@ -16,7 +16,7 @@
                 <table id="productsTable" class="table table-bordered table-striped">
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>STT</th>
                             <th>Image</th>
                             <th>Name</th>
                             <th>Price</th>
@@ -126,7 +126,12 @@
                     dataSrc: 'data'
                 },
                 columns: [
-                    { data: 'productId' },
+                    {
+                        data: null,
+                        render: function (data, type, row, meta) {
+                            return meta.row + 1;
+                        }
+                    },
                     {
                         data: 'img',
                         render: function(data) {

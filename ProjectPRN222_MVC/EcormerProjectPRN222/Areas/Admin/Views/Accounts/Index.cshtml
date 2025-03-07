@@ -10,7 +10,7 @@
                 <table id="accountsTable" class="table table-bordered table-striped">
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>STT</th>
                             <th>Username</th>
                             <th>Full Name</th>
                             <th>Email</th>
@@ -119,7 +119,12 @@
                     dataSrc: 'data'
                 },
                 columns: [
-                    { data: 'userId' },
+                    {
+                        data: null,
+                        render: function (data, type, row, meta) {
+                            return meta.row + 1;
+                        }
+                    },
                     { data: 'username' },
                     { data: 'fullName' },
                     { data: 'email' },

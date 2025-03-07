@@ -15,7 +15,7 @@
                 <table id="categoriesTable" class="table table-bordered table-striped">
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>STT</th>
                             <th>Name</th>
                             <th>Status</th>
                             <th>Description</th>
@@ -102,7 +102,12 @@
                     dataSrc: 'data'
                 },
                 columns: [
-                    { data: 'categoryId' },
+                    {
+                        data: null,
+                        render: function (data, type, row, meta) {
+                            return meta.row + 1;
+                        }
+                    },
                     { data: 'categoryName' },
                     {
                         data: 'status',
