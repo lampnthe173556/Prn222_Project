@@ -12,6 +12,33 @@
                 </div>
             </div>
             <div class="card-body">
+                <!-- Filter Section -->
+                <div class="mb-4 border p-3 rounded bg-light">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-0">
+                                <label>Payment Name</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-credit-card"></i></span>
+                                    </div>
+                                    <input type="text" class="form-control" id="nameFilter" placeholder="Search by name">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-0">
+                                <label>Status</label>
+                                <select class="form-control" id="statusFilter">
+                                    <option value="">All Status</option>
+                                    <option value="1">Active</option>
+                                    <option value="0">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <table id="paymentsTable" class="table table-bordered table-striped">
                     <thead>
                         <tr>
@@ -96,6 +123,26 @@
         let deleteId = 0;
 
         $(document).ready(function () {
+            // Custom filtering function
+            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex, rowData) {
+                // Get filter values
+                const name = $('#nameFilter').val().toLowerCase();
+                const status = $('#statusFilter').val();
+
+                // Name filter
+                if (name && !rowData.paymentName.toLowerCase().includes(name)) {
+                    return false;
+                }
+
+                // Status filter
+                if (status !== '' && rowData.status != status) {
+                    return false;
+                }
+
+                return true;
+            });
+
+            // Initialize DataTable
             table = $('#paymentsTable').DataTable({
                 ajax: {
                     url: '/Admin/Payments/GetPayments',
@@ -144,6 +191,15 @@
                         }
                     }
                 ]
+            });
+
+            // Add event listeners for filter inputs
+            $('#nameFilter').on('input', function() {
+                table.draw();
+            });
+
+            $('#statusFilter').on('change', function() {
+                table.draw();
             });
         });
 

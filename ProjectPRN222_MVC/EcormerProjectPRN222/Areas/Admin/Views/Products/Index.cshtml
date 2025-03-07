@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿@using EcormerProjectPRN222.Models
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿@using EcormerProjectPRN222.Models
 @model IEnumerable<EcormerProjectPRN222.Models.Product>
 
 <div class="row">
@@ -14,42 +14,56 @@
             </div>
             <div class="card-body">
                 <!-- Filter Section -->
-                <div class="row mb-3">
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label>Product Name</label>
-                            <input type="text" class="form-control" id="nameFilter" placeholder="Search by name">
+                <div class="mb-4 border p-3 rounded bg-light">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-group mb-0">
+                                <label>Product Name</label>
+                                <input type="text" class="form-control" id="nameFilter" placeholder="Search by name">
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label>Price Range</label>
-                            <div class="d-flex">
-                                <input type="number" class="form-control mr-2" id="minPrice" placeholder="Min">
-                                <input type="number" class="form-control" id="maxPrice" placeholder="Max">
+                        <div class="col-md-6">
+                            <div class="form-group mb-0">
+                                <label>Price Range</label>
+                                <div class="d-flex">
+                                    <div class="input-group mr-2">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Min</span>
+                                        </div>
+                                        <input type="number" class="form-control" id="minPrice">
+                                    </div>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Max</span>
+                                        </div>
+                                        <input type="number" class="form-control" id="maxPrice">
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label>Category</label>
-                            <select class="form-control" id="categoryFilter">
-                                <option value="">All Categories</option>
-                                @foreach (var category in (List<Category>)ViewData["Categories"])
-                                {
-                                    <option value="@category.CategoryId">@category.CategoryName</option>
-                                }
-                            </select>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-0">
+                                <label>Category</label>
+                                <select class="form-control" id="categoryFilter">
+                                    <option value="">All Categories</option>
+                                    @foreach (var category in (List<Category>)ViewData["Categories"])
+                                    {
+                                        <option value="@category.CategoryId">@category.CategoryName</option>
+                                    }
+                                </select>
+                            </div>
                         </div>
-                    </div>
-                    <div class="col-md-3">
-                        <div class="form-group">
-                            <label>Status</label>
-                            <select class="form-control" id="statusFilter">
-                                <option value="">All Status</option>
-                                <option value="1">Active</option>
-                                <option value="0">Inactive</option>
-                            </select>
+                        <div class="col-md-6">
+                            <div class="form-group mb-0">
+                                <label>Status</label>
+                                <select class="form-control" id="statusFilter">
+                                    <option value="">All Status</option>
+                                    <option value="1">Active</option>
+                                    <option value="0">Inactive</option>
+                                </select>
+                            </div>
                         </div>
                     </div>
                 </div>

@@ -7,6 +7,43 @@
                 <h3 class="card-title">Account List</h3>
             </div>
             <div class="card-body">
+                <!-- Filter Section -->
+                <div class="mb-4 border p-3 rounded bg-light">
+                    <div class="row">
+                        <div class="col-md-4">
+                            <div class="form-group mb-0">
+                                <label>Username/Full Name</label>
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text"><i class="fas fa-user"></i></span>
+                                    </div>
+                                    <input type="text" class="form-control" id="nameFilter" placeholder="Search by username or full name">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-0">
+                                <label>Role</label>
+                                <select class="form-control" id="roleFilter">
+                                    <option value="">All Roles</option>
+                                    <option value="Admin">Admin</option>
+                                    <option value="Customer">Customer</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="form-group mb-0">
+                                <label>Status</label>
+                                <select class="form-control" id="statusFilter">
+                                    <option value="">All Status</option>
+                                    <option value="1">Active</option>
+                                    <option value="0">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <table id="accountsTable" class="table table-bordered table-striped">
                     <thead>
                         <tr>
@@ -111,6 +148,32 @@
         };
 
         $(document).ready(function () {
+            // Custom filtering function
+            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex, rowData) {
+                // Get filter values
+                const name = $('#nameFilter').val().toLowerCase();
+                const role = $('#roleFilter').val();
+                const status = $('#statusFilter').val();
+
+                // Name/Username filter (checks both username and full name)
+                if (name && !rowData.username.toLowerCase().includes(name) &&
+                    !rowData.fullName.toLowerCase().includes(name)) {
+                    return false;
+                }
+
+                // Role filter
+                if (role && rowData.roleName !== role) {
+                    return false;
+                }
+
+                // Status filter
+                if (status !== '' && rowData.status != status) {
+                    return false;
+                }
+
+                return true;
+            });
+
             // Initialize DataTable
             table = $('#accountsTable').DataTable({
                 ajax: {
@@ -152,6 +215,15 @@
                         }
                     }
                 ]
+            });
+
+            // Add event listeners for filter inputs
+            $('#nameFilter').on('input', function() {
+                table.draw();
+            });
+
+            $('#roleFilter, #statusFilter').on('change', function() {
+                table.draw();
             });
         });
 
