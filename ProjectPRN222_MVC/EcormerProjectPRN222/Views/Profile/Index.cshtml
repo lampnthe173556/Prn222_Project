@@ -73,9 +73,10 @@
                 <a href="@Url.Action("ChangePassword", "Profile")" class="btn btn-warning">
                     <i class="fa fa-key"></i> Change Password
                 </a>
-                <button class="btn btn-info" id="viewOrderHistoryBtn" data-userid="@Model.Username">
-                    <i class="fa fa-history"></i> View Order History
-                </button>
+
+                <a href="@Url.Action("HistoryOrder", "Profile")" class="btn btn-info">
+                    <i class="fa fa-history"></i> Order History
+                </a>
             </div>
         </div>
     </div>

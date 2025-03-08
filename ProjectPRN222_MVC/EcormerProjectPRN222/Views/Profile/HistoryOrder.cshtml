@@ -1,0 +1,93 @@
+﻿@model IEnumerable<EcormerProjectPRN222.Models.OrderDetail>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Order History</title>
+    <link rel="stylesheet" href="~/styles/bootstrap4/bootstrap.min.css">
+    <link rel="stylesheet" href="~/plugins/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="~/styles/main_styles.css">
+    <link rel="stylesheet" href="~/styles/responsive.css">
+    <style>
+        .order-history-card {
+            max-width: 900px;
+            margin: 50px auto;
+            padding: 20px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            background: white;
+        }
+
+        .order-history-card h4 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+
+    @Html.Partial("~/Views/ParticalView/Header.cshtml")
+
+    <br>
+    <br>
+    <br>
+    <br>
+
+    <div class="container">
+        <div class="order-history-card bg-white p-4">
+            <h4><i class="fa fa-history"></i> Order History</h4>
+            <hr />
+
+            <div class="table-responsive">
+                <table class="table table-hover table-bordered text-center">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Order ID</th>
+                            <th>Order Date</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th>Product</th>
+                            <th>Comment</th>
+                            <th>Payment</th>
+                            <th>Total Price ($)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var order in Model)
+                        {
+                            <tr class="align-middle">
+                                <td>@order.OderId</td>
+                                <td>@order.Order.OrderDate.ToString("yyyy-MM-dd")</td>
+                                <td>@order.Order.LocationOrder</td>
+                                <td>
+                                    <span class="badge @(order.Order.Status == 0 ? "bg-success" : order.Order.Status == 1 ? "bg-primary" : "bg-warning text-dark")">
+                                        @(order.Order.Status == 0 ? "Delivered" : order.Order.Status == 1 ? "Shipped" : "Pending")
+                                    </span>
+                                </td>
+                                <td>
+                                    <ul class="list-unstyled">
+                                        <li>@order.Product.ProductName</li>
+                                    </ul>
+                                </td>
+                                <td>@order.Order.Comment</td>
+                                <td>@order.Order.Pay.PaymentName</td>
+                                <td>@order.Order.TotalAmount?.ToString("N2")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    @Html.Partial("~/Views/ParticalView/Footer.cshtml")
+
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <script src="~/styles/bootstrap4/popper.js"></script>
+    <script src="~/styles/bootstrap4/bootstrap.min.js"></script>
+    <script src="~/js/custom.js"></script>
+
+</body>
+</html>

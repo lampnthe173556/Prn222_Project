@@ -101,7 +101,7 @@ namespace EcormerProjectPRN222.Controllers
         }
 
         // GET: Profile/Delete
-        
+
         // POST: Profile/Delete
         [HttpPost, ActionName("Delete")]
         public IActionResult Delete()
@@ -115,10 +115,10 @@ namespace EcormerProjectPRN222.Controllers
                 }
 
                 var user = JsonSerializer.Deserialize<Account>(userJson);
-                var account = _context.Accounts.Find(user.UserId);                
+                var account = _context.Accounts.Find(user.UserId);
 
                 // Cập nhật giá trị mới vào tài khoản đang tracking
-               
+
                 account.Status = 0;
                 _context.Accounts.Update(account);
 
@@ -142,7 +142,7 @@ namespace EcormerProjectPRN222.Controllers
             return View();
         }
 
-       
+
         //GET: change pass
         public IActionResult ChangePassword()
         {
@@ -174,7 +174,7 @@ namespace EcormerProjectPRN222.Controllers
 
             try
             {
-                if (currentPassword.Equals(newPassword) )
+                if (currentPassword.Equals(newPassword))
                 {
                     //ghi user vao session
                     var userJson = HttpContext.Session.GetString("user");
@@ -187,7 +187,7 @@ namespace EcormerProjectPRN222.Controllers
                     HttpContext.Session.SetString("user", userJsonUpdated);
 
                 }
-                if(!newPassword.Equals(confirmPassword)) 
+                if (!newPassword.Equals(confirmPassword))
                 {
                     var userJson = HttpContext.Session.GetString("user");
                     var user = JsonSerializer.Deserialize<Account>(userJson);
@@ -240,6 +240,34 @@ namespace EcormerProjectPRN222.Controllers
             }
 
             return View();
+        }
+        public IActionResult HistoryOrder()
+        {
+            var userJson = HttpContext.Session.GetString("user");
+            if (userJson == null)
+            {
+                return RedirectToAction("Index", "Login");
+            }
+
+            var user = JsonSerializer.Deserialize<Account>(userJson);
+            ViewBag.User = user;
+
+            var orders = _context.OrderDetails
+                .Include(od => od.Product) // Load thông tin từ bảng Product
+                .Include(od => od.Order) // Load thông tin từ bảng Order
+                    .ThenInclude(o => o.Pay) // Load thông tin từ bảng Payment
+                .Where(od => od.Order.UserId == user.UserId) // Lọc theo UserId
+                .GroupBy(od => new { od.Order.OrderId, od.ProductId }) // Nhóm theo OrderId và ProductId
+                .Select(g => new OrderDetail
+                {
+                    OderId = g.Key.OrderId,
+                    ProductId = g.Key.ProductId,
+                    Quanity = g.Sum(od => od.Quanity), // Cộng dồn số lượng
+                    Product = g.First().Product, // Lấy thông tin sản phẩm
+                    Order = g.First().Order // Lấy thông tin đơn hàng
+                }).OrderBy(od => od.OderId) // Sort theo ID đơn hàng
+                .ToList();
+            return View(orders);
         }
     }
 }
