@@ -1,5 +1,6 @@
 ﻿@model IEnumerable<EcormerProjectPRN222.Models.Order>
 
+
 <div class="row">
     <div class="col-12">
         <div class="card">
@@ -7,10 +8,66 @@
                 <h3 class="card-title">Order List</h3>
             </div>
             <div class="card-body">
+                <!-- Filter Section -->
+                <div class="mb-4 border p-3 rounded bg-light">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-group mb-0">
+                                <label>Date Range</label>
+                                <div class="d-flex">
+                                    <div class="input-group mr-2">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">From</span>
+                                        </div>
+                                        <input type="date" class="form-control" id="startDate">
+                                    </div>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">To</span>
+                                        </div>
+                                        <input type="date" class="form-control" id="endDate">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-0">
+                                <label>Customer Name</label>
+                                <input type="text" class="form-control" id="customerFilter" placeholder="Search by customer name">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-0">
+                                <label>Status</label>
+                                <select class="form-control" id="statusFilter">
+                                    <option value="">All Status</option>
+                                    <option value="0">Pending</option>
+                                    <option value="1">Completed</option>
+                                    <option value="-1">Cancelled</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-0">
+                                <label>Payment Method</label>
+                                <select class="form-control" id="paymentFilter">
+                                    <option value="">All Methods</option>
+                                    @foreach (var payment in (SelectList)ViewData["Payments"])
+                                    {
+                                        <option value="@payment.Value">@payment.Text</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <table id="ordersTable" class="table table-bordered table-striped">
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>STT</th>
                             <th>Date</th>
                             <th>Customer</th>
                             <th>Total</th>
@@ -144,6 +201,41 @@
         let currentOrderId = 0;
 
         $(document).ready(function () {
+            // Custom filtering function
+            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex, rowData) {
+                // Get filter values
+                const startDate = $('#startDate').val() ? new Date($('#startDate').val()) : null;
+                const endDate = $('#endDate').val() ? new Date($('#endDate').val()) : null;
+                const customer = $('#customerFilter').val().toLowerCase();
+                const status = $('#statusFilter').val();
+                const payment = $('#paymentFilter').val();
+
+                // Date filter
+                if (startDate || endDate) {
+                    const orderDate = new Date(rowData.orderDate);
+                    if (startDate && orderDate < startDate) return false;
+                    if (endDate && orderDate > endDate) return false;
+                }
+
+                // Customer name filter
+                if (customer && !rowData.customerName.toLowerCase().includes(customer)) {
+                    return false;
+                }
+
+                // Status filter
+                if (status !== '' && rowData.status != status) {
+                    return false;
+                }
+
+                // Payment method filter
+                if (payment && rowData.paymentMethod !== payment) {
+                    return false;
+                }
+
+                return true;
+            });
+
+            // Initialize DataTable
             table = $('#ordersTable').DataTable({
                 ajax: {
                     url: '/Admin/Orders/GetOrders',
@@ -151,7 +243,12 @@
                     dataSrc: 'data'
                 },
                 columns: [
-                    { data: 'orderId' },
+                    {
+                        data: null,
+                        render: function (data, type, row, meta) {
+                            return meta.row + 1;
+                        }
+                    },
                     { 
                         data: 'orderDate',
                         render: function(data) {
@@ -198,6 +295,15 @@
                     }
                 ],
                 order: [[0, 'desc']]
+            });
+
+            // Add event listeners for filter inputs
+            $('#startDate, #endDate, #customerFilter').on('input', function() {
+                table.draw();
+            });
+
+            $('#statusFilter, #paymentFilter').on('change', function() {
+                table.draw();
             });
         });
 

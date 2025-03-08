@@ -1,4 +1,4 @@
-﻿using EcormerProjectPRN222.Dao.AccountDAO;
+﻿﻿using EcormerProjectPRN222.Dao.AccountDAO;
 using EcormerProjectPRN222.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
@@ -81,7 +81,17 @@ namespace EcormerProjectPRN222.Controllers
 
         public IActionResult Logout()
         {
+            // Clear session
             HttpContext.Session.Remove("user");
+            
+            // Clear authentication cookies
+            Response.Cookies.Delete("email");
+            Response.Cookies.Delete("password");
+            Response.Cookies.Delete("rememberPass");
+            
+            // Clear all session data
+            HttpContext.Session.Clear();
+            
             return RedirectToAction("Index");
         }
     }

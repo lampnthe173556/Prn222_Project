@@ -1,4 +1,4 @@
-﻿﻿﻿﻿﻿﻿@using EcormerProjectPRN222.Models
+﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿﻿@using EcormerProjectPRN222.Models
 @model IEnumerable<EcormerProjectPRN222.Models.Product>
 
 <div class="row">
@@ -13,10 +13,65 @@
                 </div>
             </div>
             <div class="card-body">
+                <!-- Filter Section -->
+                <div class="mb-4 border p-3 rounded bg-light">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <div class="form-group mb-0">
+                                <label>Product Name</label>
+                                <input type="text" class="form-control" id="nameFilter" placeholder="Search by name">
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-0">
+                                <label>Price Range</label>
+                                <div class="d-flex">
+                                    <div class="input-group mr-2">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Min</span>
+                                        </div>
+                                        <input type="number" class="form-control" id="minPrice">
+                                    </div>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">Max</span>
+                                        </div>
+                                        <input type="number" class="form-control" id="maxPrice">
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="form-group mb-0">
+                                <label>Category</label>
+                                <select class="form-control" id="categoryFilter">
+                                    <option value="">All Categories</option>
+                                    @foreach (var category in (List<Category>)ViewData["Categories"])
+                                    {
+                                        <option value="@category.CategoryId">@category.CategoryName</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-group mb-0">
+                                <label>Status</label>
+                                <select class="form-control" id="statusFilter">
+                                    <option value="">All Status</option>
+                                    <option value="1">Active</option>
+                                    <option value="0">Inactive</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
                 <table id="productsTable" class="table table-bordered table-striped">
                     <thead>
                         <tr>
-                            <th>ID</th>
+                            <th>STT</th>
                             <th>Image</th>
                             <th>Name</th>
                             <th>Price</th>
@@ -119,6 +174,41 @@
         let deleteId = 0;
 
         $(document).ready(function () {
+            // Custom filtering function
+            $.fn.dataTable.ext.search.push(function(settings, data, dataIndex, rowData) {
+                // Get filter values
+                const name = $('#nameFilter').val().toLowerCase();
+                const minPrice = parseFloat($('#minPrice').val()) || 0;
+                const maxPrice = parseFloat($('#maxPrice').val()) || Number.MAX_VALUE;
+                const category = $('#categoryFilter').val();
+                const status = $('#statusFilter').val();
+
+                // Name filter
+                if (name && !rowData.productName.toLowerCase().includes(name)) {
+                    return false;
+                }
+
+                // Price filter
+                const price = parseFloat(rowData.price);
+                if (price < minPrice || price > maxPrice) {
+                    return false;
+                }
+
+                // Category filter
+                if (category && rowData.categoryId != category) {
+                    return false;
+                }
+
+                // Status filter
+                if (status !== '' && rowData.status != status) {
+                    return false;
+                }
+
+                return true;
+            });
+
+            // Initialize DataTable
+            // Initialize DataTable
             table = $('#productsTable').DataTable({
                 ajax: {
                     url: '/Admin/Products/GetProducts',
@@ -126,7 +216,12 @@
                     dataSrc: 'data'
                 },
                 columns: [
-                    { data: 'productId' },
+                    {
+                        data: null,
+                        render: function (data, type, row, meta) {
+                            return meta.row + 1;
+                        }
+                    },
                     {
                         data: 'img',
                         render: function(data) {
@@ -169,6 +264,15 @@
                         }
                     }
                 ]
+            });
+
+            // Add event listeners for filter inputs
+            $('#nameFilter, #minPrice, #maxPrice').on('input', function() {
+                table.draw();
+            });
+
+            $('#categoryFilter, #statusFilter').on('change', function() {
+                table.draw();
             });
         });
 

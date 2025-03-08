@@ -83,8 +83,8 @@
 
                     <div class="breadcrumbs d-flex flex-row align-items-center">
                         <ul>
-                            <li><a href="index.html">Home</a></li>
-                            <li class="active"><a href="index.html"><i class="fa fa-angle-right" aria-hidden="true"></i>Men's</a></li>
+                            <li><a href="~/Home/Index">Home</a></li>
+                            <li class="active"><a href="~/Shop/Index"><i class="fa fa-angle-right" aria-hidden="true"></i>Shop</a></li>
                         </ul>
                     </div>
 
@@ -124,17 +124,17 @@
                             </ul>
                         </div>
 
-                        <!-- Price Range Filtering -->
-                        <div class="sidebar_section">
-                            <div class="sidebar_title">
-                                <h5>Filter by Price</h5>
-                            </div>
-                            <p>
-                                <input type="text" id="amount" readonly style="border:0; color:#f6931f; font-weight:bold;">
-                            </p>
-                            <div id="slider-range"></div>
-                            <div class="filter_button"><span>filter</span></div>
-                        </div>
+                        <!-- Price Range Filtering
+                         <div class="sidebar_section">
+                             <div class="sidebar_title">
+                                 <h5>Filter by Price</h5>
+                             </div>
+                             <p>
+                                 <input type="text" id="amount" readonly style="border:0; color:#f6931f; font-weight:bold;">
+                             </p>
+                             <div id="slider-range"></div>
+                             <div class="filter_button"><span>filter</span></div>
+                        </div>-->
 
 
 
@@ -206,7 +206,7 @@
                                                         <div class="favorite favorite_left"></div>
                                                         <div class="product_bubble product_bubble_right product_bubble_red d-flex flex-column align-items-center"><span>-$20</span></div>
                                                         <div class="product_info">
-                                                            <h6 class="product_name"><a href="~/single.html">@(item.ProductName)</a></h6>
+                                                            <h6 class="product_name"><a href="~/ProductDetails/Index?productId=@($"{item.ProductId}")">@(item.ProductName)</a></h6>
                                                             <div class="product_price">$@(item.Price.ToString("0.00"))<span>$@((item.Price * 1.1).ToString("0.00"))</span></div>
                                                         </div>
                                                     </div>
@@ -225,7 +225,7 @@
                                                         <div class="favorite favorite_left"></div>
                                                         <div class="product_bubble product_bubble_right product_bubble_red d-flex flex-column align-items-center"><span>-$20</span></div>
                                                         <div class="product_info">
-                                                            <h6 class="product_name"><a href="~/single.html">@(item.ProductName)</a></h6>
+                                                            <h6 class="product_name"><a href="~/ProductDetails/Index?productId=@($"{item.ProductId}")">@(item.ProductName)</a></h6>
                                                             <div class="product_price">$@(item.Price.ToString("0.00"))<span>$@((item.Price * 1.1).ToString("0.00"))</span></div>
                                                         </div>
                                                     </div>
@@ -242,7 +242,7 @@
                                                         <div class="favorite favorite_left"></div>
                                                         <div class="product_bubble product_bubble_right product_bubble_red d-flex flex-column align-items-center"><span>-$20</span></div>
                                                         <div class="product_info">
-                                                            <h6 class="product_name"><a href="~/single.html">@(item.ProductName)</a></h6>
+                                                            <h6 class="product_name"><a href="~/ProductDetails/Index?productId=@($"{item.ProductId}")">@(item.ProductName)</a></h6>
                                                             <div class="product_price">$@(item.Price.ToString("0.00"))<span>$@((item.Price * 1.1).ToString("0.00"))</span></div>
                                                         </div>
                                                     </div>
