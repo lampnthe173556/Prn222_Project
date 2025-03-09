@@ -24,10 +24,12 @@ public partial class MyProjectClothingContext : DbContext
     public virtual DbSet<OrderDetail> OrderDetails { get; set; }
 
     public virtual DbSet<Payment> Payments { get; set; }
-
     public virtual DbSet<Product> Products { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
+
+    public virtual DbSet<CartItem> CartItems { get; set; }
+
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
     {
@@ -119,7 +121,7 @@ public partial class MyProjectClothingContext : DbContext
 
             entity.Property(e => e.ProductId).HasColumnName("ProductID");
 
-            entity.HasOne(d => d.Oder).WithMany()
+            entity.HasOne(d => d.Order).WithMany()
                 .HasForeignKey(d => d.OderId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_OrderDetail_Order");

@@ -4,11 +4,10 @@
 
 @{
     var user = ViewBag.User as EcormerProjectPRN222.Models.Account;
+    var cart = ViewBag.CartItems as List<EcormerProjectPRN222.Models.CartItem>;
 }
 <header class="header trans_300">
-
     <!-- Top Navigation -->
-
     <div class="top_nav">
         <div class="container">
             <div class="row">
@@ -24,7 +23,8 @@
                                     <a href="~/Login/Index">
                                         Login
                                     </a>
-                                }else
+                                }
+                                else
                                 {
                                     <a href="~/Login/Logout">
                                         Logout
@@ -39,7 +39,6 @@
     </div>
 
     <!-- Main Navigation -->
-
     <div class="main_nav_container">
         <div class="container">
             <div class="row">
@@ -54,15 +53,14 @@
                             <li><a href="~/Contact/Index">contact</a></li>
                         </ul>
                         <ul class="navbar_user">
-                            @if(user != null)
+                            @if (user != null)
                             {
                                 <li><a href="~/Profile/Index"><i class="fa fa-user" aria-hidden="true"></i></a></li>
                             }
-                           
                             <li class="checkout">
-                                <a href="#">
+                                <a href="~/Cart/Index">
                                     <i class="fa fa-shopping-cart" aria-hidden="true"></i>
-                                    <span id="checkout_items" class="checkout_items">2</span>
+                                    <span id="checkout_items" class="checkout_items">@(cart != null ? cart.Count : 0)</span>
                                 </a>
                             </li>
                         </ul>
@@ -74,5 +72,4 @@
             </div>
         </div>
     </div>
-
 </header>

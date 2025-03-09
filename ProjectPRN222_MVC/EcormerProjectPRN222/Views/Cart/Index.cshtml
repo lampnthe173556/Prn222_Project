@@ -1,0 +1,116 @@
+﻿@model IEnumerable<EcormerProjectPRN222.Models.CartItem>
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart</title>
+    <link rel="stylesheet" href="~/styles/bootstrap4/bootstrap.min.css">
+    <link rel="stylesheet" href="~/plugins/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="~/styles/main_styles.css">
+    <link rel="stylesheet" href="~/styles/responsive.css">
+    <style>
+        .cart-card {
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+            border-radius: 10px;
+            background: white;
+        }
+
+        .cart-card h4 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        .cart-card table {
+            width: 100%;
+            text-align: center;
+        }
+
+        .cart-card th, .cart-card td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .cart-card .actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    @Html.Partial("~/Views/ParticalView/Header.cshtml")
+    <br>
+    <br>
+    <br>
+    <br>
+    <div class="container">
+        <div class="cart-card bg-white p-4">
+            <h4><i class="fa fa-shopping-cart"></i> Shopping Cart</h4>
+            <hr />
+
+            @if (!Model.Any())
+            {
+                <p class="text-center">Your cart is empty.</p>
+            }
+            else
+            {
+                <table class="table table-hover text-center">
+                    <thead class="table-dark">
+                        <tr>
+                            <th>Product</th>
+                            <th>Price</th>
+                            <th>Quantity</th>
+                            <th>Total</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td>@item.ProductName</td>
+                                <td>$@item.Price.ToString("0.00")</td>
+                                <td>
+                                    <form asp-controller="Cart" asp-action="UpdateCart" method="post">
+                                        <input type="hidden" name="productId" value="@item.ProductId" />
+                                        <input type="number" name="quantity" value="@item.Quantity" min="1" class="form-control" style="width: 60px; display: inline;" />
+                                        <button type="submit" class="btn btn-primary btn-sm">
+                                            <i class="fa fa-refresh"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                                <td>$@(item.Price * item.Quantity)</td>
+                                <td>
+                                    <form asp-controller="Cart" asp-action="RemoveFromCart" method="post">
+                                        <input type="hidden" name="productId" value="@item.ProductId" />
+                                        <button type="submit" class="btn btn-danger btn-sm">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+
+                <div class="d-flex justify-content-between">
+                    <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">Back to Home</a>
+                    <a href="@Url.Action("Checkout", "Cart")" class="btn btn-success">Proceed to Checkout</a>
+                </div>
+            }
+        </div>
+    </div>
+
+    @Html.Partial("~/Views/ParticalView/Footer.cshtml")
+
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <script src="~/styles/bootstrap4/popper.js"></script>
+    <script src="~/styles/bootstrap4/bootstrap.min.js"></script>
+    <script src="~/js/custom.js"></script>
+</body>
+</html>

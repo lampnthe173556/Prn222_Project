@@ -7,6 +7,7 @@ namespace EcormerProjectPRN222.Controllers
     public class HomeController : Controller
     {
         private readonly MyProjectClothingContext _context;
+
         public HomeController(MyProjectClothingContext context)
         {
             _context = context;
@@ -31,7 +32,25 @@ namespace EcormerProjectPRN222.Controllers
 
             ViewBag.Top10ProductsNew = top10ProductsNew;
             ViewBag.Top10ProductsBestSaler = top5ProductsBestSaler;
+
+            // update số lượng sản phẩm trong giỏ hàng
+            int? userId = GetUserSession();
+            if (userId == null) return RedirectToAction("Index", "Login"); // ko có ID thì về trang Login
+
+            var cartItems = _context.CartItems.Where(c => c.UserId == Convert.ToInt32(userId)).ToList();
+            ViewBag.cartItems = cartItems;
+            
             return View();
+        }
+        public int GetUserSession()
+        {
+            var userJson = HttpContext.Session.GetString("user");
+            if (userJson != null)
+            {
+                var user = JsonSerializer.Deserialize<Account>(userJson);
+                return user.UserId; // Trả về UserId
+            }
+            return 0; 
         }
     }
 }

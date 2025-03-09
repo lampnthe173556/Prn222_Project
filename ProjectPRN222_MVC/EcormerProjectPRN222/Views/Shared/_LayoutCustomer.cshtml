@@ -107,59 +107,31 @@
                             <!-- Product 1 -->
                             @foreach (var item in ViewBag.Top10ProductsNew)
                             {
-                                if (item.CategoryId == 1)
-                                {
-                                    <div class="product-item men">
-                                        <div class="product discount product_filter">
-                                            <div class="product_image">
-                                                <img src="@(item.Img)" alt="">
-                                            </div>
-                                            <div class="favorite favorite_left"></div>
-                                            <div class="product_bubble product_bubble_right product_bubble_red d-flex flex-column align-items-center"><span>-$20</span></div>
-                                            <div class="product_info">
-                                                <h6 class="product_name"><a href="~/ProductDetails/Index?productId=@($"{item.ProductId}")">@(item.ProductName)</a></h6>
-                                                <div class="product_price">$@(item.Price.ToString("0.00"))<span>$@((item.Price * 1.1).ToString("0.00"))</span></div>
-                                            </div>
+                                var categoryClass = item.CategoryId == 1 ? "men" : item.CategoryId == 2 ? "women" : "children";
+                                <div class="product-item @categoryClass">
+                                    <div class="product discount product_filter">
+                                        <div class="product_image">
+                                            <img src="@(item.Img)" alt="">
                                         </div>
-                                        <div class="red_button add_to_cart_button"><a href="#">add to cart</a></div>
-                                    </div>
-                                }
-                                else if (item.CategoryId == 2)
-                                {
-                                    <div class="product-item women">
-                                        <div class="product discount product_filter">
-                                            <div class="product_image">
-                                                <img src="@(item.Img)" alt="">
-                                            </div>
-                                            <div class="favorite favorite_left"></div>
-                                            <div class="product_bubble product_bubble_right product_bubble_red d-flex flex-column align-items-center"><span>-$20</span></div>
-                                            <div class="product_info">
-                                                <h6 class="product_name"><a href="~/ProductDetails/Index?productId=@($"{item.ProductId}")">@(item.ProductName)</a></h6>
-                                                <div class="product_price">$@(item.Price.ToString("0.00"))<span>$@((item.Price * 1.1).ToString("0.00"))</span></div>
-                                            </div>
+                                        <div class="favorite favorite_left"></div>
+                                        <div class="product_bubble product_bubble_right product_bubble_red d-flex flex-column align-items-center"><span>-$20</span></div>
+                                        <div class="product_info">
+                                            <h6 class="product_name"><a href="~/ProductDetails/Index?productId=@($"{item.ProductId}")">@(item.ProductName)</a></h6>
+                                            <div class="product_price">$@(item.Price.ToString("0.00"))<span>$@((item.Price * 1.1).ToString("0.00"))</span></div>
                                         </div>
-                                        <div class="red_button add_to_cart_button"><a href="#">add to cart</a></div>
                                     </div>
-                                }
-                                else if (item.CategoryId == 3)
-                                {
-                                    <div class="product-item children">
-                                        <div class="product discount product_filter">
-                                            <div class="product_image">
-                                                <img src="@(item.Img)" alt="">
-                                            </div>
-                                            <div class="favorite favorite_left"></div>
-                                            <div class="product_bubble product_bubble_right product_bubble_red d-flex flex-column align-items-center"><span>-$20</span></div>
-                                            <div class="product_info">
-                                                        <h6 class="product_name"><a href="~/ProductDetails/Index?productId=@($"{item.ProductId}")">@(item.ProductName)</a></h6>
-                                                <div class="product_price">$@(item.Price.ToString("0.00"))<span>$@((item.Price * 1.1).ToString("0.00"))</span></div>
-                                            </div>
-                                        </div>
-                                        <div class="red_button add_to_cart_button"><a href="#">add to cart</a></div>
+                                    <div class="red_button add_to_cart_button">
+                                        <form asp-controller="Cart" asp-action="AddToCart" method="post">
+                                            <input type="hidden" name="productId" value="@(item.ProductId)" />
+                                            <input type="hidden" name="productName" value="@(item.ProductName)" />
+                                            <input type="hidden" name="img" value="@(item.Img)" />
+                                            <input type="hidden" name="price" value="@(item.Price)" />
+                                            <button type="submit">add to cart</button>
+                                        </form>
                                     </div>
-                                }
-
+                                </div>
                             }
+
                                                       
                             <div>
                                 @RenderBody();
@@ -343,6 +315,28 @@
 
     </div>
 
+    @section Scripts {
+        <script>
+            function addToCart(productId, productName, img, price) {
+                $.ajax({
+                    url: '@Url.Action("AddToCart", "Cart")',
+                    type: 'POST',
+                    data: {
+                        productId: productId,
+                        productName: productName,
+                        img: img,
+                        price: price
+                    },
+                    success: function (response) {
+                        $('#checkout_items').text(response.cartCount);
+                    },
+                    error: function (xhr, status, error) {
+                        console.error("Error adding to cart:", error);
+                    }
+                });
+            }
+        </script>
+    }
     <script src="~/js/jquery-3.2.1.min.js"></script>
     <script src="~/styles/bootstrap4/popper.js"></script>
     <script src="~/styles/bootstrap4/bootstrap.min.js"></script>
