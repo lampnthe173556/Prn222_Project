@@ -137,7 +137,15 @@
 								<span id="quantity_value">1</span>
 								<span class="plus"><i class="fa fa-plus" aria-hidden="true"></i></span>
 							</div>
-							<div class="red_button add_to_cart_button"><a href="#">add to cart</a></div>
+							<div class="red_button add_to_cart_button">
+								<form asp-controller="Cart" asp-action="AddToCart" method="post">
+									<input type="hidden" name="productId" value="@(product.ProductId)" />
+									<input type="hidden" name="productName" value="@(product.ProductName)" />
+									<input type="hidden" name="img" value="@(product.Img)" />
+									<input type="hidden" name="price" value="@(product.Price)" />
+									<button type="submit">add to cart</button>
+								</form>
+							</div>
 							
 						</div>
 					</div>
