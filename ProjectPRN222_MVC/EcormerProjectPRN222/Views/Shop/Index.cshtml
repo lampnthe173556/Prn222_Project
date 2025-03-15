@@ -212,7 +212,17 @@
                                                     </div>
 
 
-                                                    <div class="red_button add_to_cart_button"><a href="#">add to cart</a></div>
+                                                    <div class="red_button add_to_cart_button">
+                                                        <div class="red_button add_to_cart_button">
+                                                            <form asp-controller="Cart" asp-action="AddToCart" method="post">
+                                                                <input type="hidden" name="productId" value="@(item.ProductId)" />
+                                                                <input type="hidden" name="productName" value="@(item.ProductName)" />
+                                                                <input type="hidden" name="img" value="@(item.Img)" />
+                                                                <input type="hidden" name="price" value="@(item.Price)" />
+                                                                <button type="submit">add to cart</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
                                                 </div>
                                             }
                                             else if (item.CategoryId == 2)
