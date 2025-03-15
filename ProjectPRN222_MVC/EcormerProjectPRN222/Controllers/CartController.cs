@@ -1,6 +1,7 @@
 ﻿using EcormerProjectPRN222.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 
 public class CartController : Controller
 {
@@ -52,6 +53,7 @@ public class CartController : Controller
     [HttpPost]
     public IActionResult AddToCart(int productId, string productName, string img, decimal price, int quantity)
     {
+
         int userId = GetUserSession();
         if (userId == null) return RedirectToAction("Index", "Login"); 
 
@@ -77,6 +79,8 @@ public class CartController : Controller
         }
 
         _context.SaveChanges();
+
+        TempData["SuccessMessage"] = "Thêm vào giỏ hàng thành công!";
         return Redirect(Request.Headers["Referer"].ToString());
     }
 
