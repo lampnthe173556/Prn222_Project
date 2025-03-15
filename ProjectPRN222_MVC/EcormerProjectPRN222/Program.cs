@@ -1,4 +1,5 @@
 using EcormerProjectPRN222.Models;
+using EcormerProjectPRN222.Services;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -21,7 +22,8 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
     options.CheckConsentNeeded = context => false;
     options.MinimumSameSitePolicy = SameSiteMode.Lax;
 });
-
+//add email service
+builder.Services.AddSingleton<EmailService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

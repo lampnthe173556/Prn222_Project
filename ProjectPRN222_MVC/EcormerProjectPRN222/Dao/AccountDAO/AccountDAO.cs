@@ -29,5 +29,19 @@ namespace EcormerProjectPRN222.Dao.AccountDAO
             _context.Accounts.Add(account);
             _context.SaveChanges();
         }
+
+        public static Account GetAccountByEmail(string? email)
+        {
+            Account account = _context.Accounts.FirstOrDefault(s => s.Email.Equals(email));
+            return account;
+        }
+
+        
+
+        public static void UpdateAccount(Account account)
+        {
+            _context.Accounts.Update(account);
+            _context.SaveChanges();
+        }
     }
 }
