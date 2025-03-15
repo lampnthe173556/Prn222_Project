@@ -15,7 +15,49 @@
 	<link rel="stylesheet" type="text/css" href="~/plugins/jquery-ui-1.12.1.custom/jquery-ui.css">
 	<link rel="stylesheet" type="text/css" href="~/styles/single_styles.css">
 	<link rel="stylesheet" type="text/css" href="~/styles/single_responsive.css">
+	<style>
+		.add-to-cart-button {
+			background: linear-gradient(to bottom, #ff3d3d, #cc0000); /* Hiệu ứng chuyển màu đỏ */
+			color: white; /* Chữ trắng */
+			padding: 10px 16px; /* Kích thước nút nhỏ hơn */
+			font-size: 14px; /* Chữ nhỏ hơn */
+			font-weight: bold;
+			border: none; /* Không viền */
+			border-radius: 8px; /* Bo góc mềm */
+			cursor: pointer;
+			display: flex;
+			align-items: center;
+			gap: 6px; /* Khoảng cách giữa icon và chữ */
+			box-shadow: 2px 4px 8px rgba(255, 0, 0, 0.3); /* Đổ bóng */
+			transition: all 0.2s ease-in-out;
+		}
+
+			.add-to-cart-button:hover {
+				background: linear-gradient(to bottom, #ff1a1a, #b30000); /* Hover màu đậm hơn */
+				transform: scale(1.05); /* Phóng to nhẹ khi hover */
+				box-shadow: 0px 5px 15px rgba(255, 0, 0, 0.4); /* Tăng bóng */
+			}
+
+			.add-to-cart-button:active {
+				transform: scale(0.95); /* Nhấn xuống nhẹ */
+			}
+
+		.cart-icon {
+			width: 18px; /* Kích thước icon nhỏ hơn */
+			height: 18px;
+		}
+
+		.quantity_input {
+			width: 50px; /* Giảm một nửa so với kích thước mặc định */
+			text-align: center; /* Căn giữa nội dung */
+		}
+
+
+		
+	</style>
+
 </head>
+
 
 <body>
 	@{
@@ -134,19 +176,19 @@
 							<span>Quantity:</span>
 							<div class="quantity_selector">
 								<span class="minus"><i class="fa fa-minus" aria-hidden="true"></i></span>
-								<span id="quantity_value">1</span>
+								<input type="number" id="quantity_value" name="quantity" value="1" min="1" class="quantity_input">
 								<span class="plus"><i class="fa fa-plus" aria-hidden="true"></i></span>
 							</div>
-							<div class="red_button add_to_cart_button">
+							<div class="add_to_cart_button">
 								<form asp-controller="Cart" asp-action="AddToCart" method="post">
 									<input type="hidden" name="productId" value="@(product.ProductId)" />
 									<input type="hidden" name="productName" value="@(product.ProductName)" />
 									<input type="hidden" name="img" value="@(product.Img)" />
 									<input type="hidden" name="price" value="@(product.Price)" />
-									<button type="submit">add to cart</button>
+									<input type="hidden" id="cart_quantity" name="quantity" value="1" />
+									<button type="submit" class="add-to-cart-button">🛒 Add to Cart</button>
 								</form>
 							</div>
-							
 						</div>
 					</div>
 				</div>
@@ -240,6 +282,32 @@
 	<script src="~/plugins/jquery-ui-1.12.1.custom/jquery-ui.js"></script>
 	<script src="~/js/single_custom.js"></script>
 
+	<script>
+		document.addEventListener("DOMContentLoaded", function () {
+			const quantityInput = document.getElementById("quantity_value");
+			const cartQuantityInput = document.getElementById("cart_quantity");
+			const minusBtn = document.querySelector(".minus");
+			const plusBtn = document.querySelector(".plus");
+
+			minusBtn.addEventListener("click", function () {
+				let currentValue = parseInt(quantityInput.value, 10);
+				if (currentValue > 1) {
+					quantityInput.value = currentValue - 1;
+					cartQuantityInput.value = quantityInput.value;
+				}
+			});
+
+			plusBtn.addEventListener("click", function () {
+				let currentValue = parseInt(quantityInput.value, 10);
+				quantityInput.value = currentValue + 1;
+				cartQuantityInput.value = quantityInput.value;
+			});
+
+			quantityInput.addEventListener("input", function () {
+				cartQuantityInput.value = quantityInput.value;
+			});
+		});
+	</script>
 	
 </body>
 

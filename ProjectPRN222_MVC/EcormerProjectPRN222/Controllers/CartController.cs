@@ -50,7 +50,7 @@ public class CartController : Controller
     }
 
     [HttpPost]
-    public IActionResult AddToCart(int productId, string productName, string img, decimal price, int quantity = 1)
+    public IActionResult AddToCart(int productId, string productName, string img, decimal price, int quantity)
     {
         int userId = GetUserSession();
         if (userId == null) return RedirectToAction("Index", "Login"); 
@@ -77,7 +77,7 @@ public class CartController : Controller
         }
 
         _context.SaveChanges();
-        return RedirectToAction("Index", "Home");
+        return Redirect(Request.Headers["Referer"].ToString());
     }
 
     [HttpPost]
@@ -120,5 +120,31 @@ public class CartController : Controller
             _context.SaveChanges();
         }
         return RedirectToAction("Index");
+    }
+    //Checkout
+    public IActionResult Checkout()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public IActionResult Checkout(Order model)
+    {
+        if (ModelState.IsValid)
+        {
+            // Save the order details to the database
+            _context.Orders.Add(model);
+            _context.SaveChanges();
+
+            // Redirect to a success page
+            return RedirectToAction("PaymentSuccess");
+        }
+
+        return View(model);
+    }
+
+    public IActionResult PaymentSuccess()
+    {
+        return View();
     }
 }
