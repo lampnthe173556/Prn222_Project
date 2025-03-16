@@ -144,19 +144,74 @@ public class CartController : Controller
     //Checkout
     public IActionResult Checkout()
     {
-        return View();
+        var userJson = HttpContext.Session.GetString("user");
+        if (userJson == null)
+        {
+            return RedirectToAction("Index", "Login");
+        }
+
+        var user = JsonSerializer.Deserialize<Account>(userJson);
+        ViewBag.User = user;
+
+        int? userId = GetUserSession();
+        if (userId == null) return RedirectToAction("Index", "Login");
+
+        var cartItems = _context.CartItems.Where(c => c.UserId == userId).ToList();
+        var model = new CheckoutViewModel
+        {
+            CartItems = cartItems
+        };
+        return View(model);
     }
 
     [HttpPost]
-    public IActionResult Checkout(Order model)
+    public IActionResult Checkout(CheckoutViewModel model)
     {
         if (ModelState.IsValid)
         {
-            // Save the order details to the database
-            _context.Orders.Add(model);
+            var userJson = HttpContext.Session.GetString("user");
+            if (userJson == null)
+            {
+                return RedirectToAction("Index", "Login");
+            }
+
+            var user = JsonSerializer.Deserialize<Account>(userJson);
+            int userId = user.UserId;
+
+            var order = new Order
+            {
+                UserId = userId,
+                OrderDate = DateOnly.FromDateTime(DateTime.Now),
+                LocationOrder = model.Address,
+                FullName = model.CustomerName,
+                PhoneNumber = model.Phone,
+                Status = 1, // Assuming 1 is the status for a new order
+                PayId = model.TypePayment,
+                TotalAmount = (double?)model.CartItems.Sum(item => item.Price * item.Quantity)
+            };
+
+            _context.Orders.Add(order);
             _context.SaveChanges();
 
-            // Redirect to a success page
+            foreach (var item in model.CartItems)
+            {
+                var orderDetail = new OrderDetail
+                {
+                    OderId = order.OrderId,
+                    ProductId = item.ProductId,
+                    Quanity = item.Quantity,
+                    Price = item.Price
+                };
+                _context.OrderDetails.Add(orderDetail);
+            }
+
+            _context.SaveChanges();
+
+            // Clear the cart after checkout
+            var cartItems = _context.CartItems.Where(c => c.UserId == userId).ToList();
+            _context.CartItems.RemoveRange(cartItems);
+            _context.SaveChanges();
+
             return RedirectToAction("PaymentSuccess");
         }
 
