@@ -83,14 +83,19 @@ public class CartController : Controller
         TempData["SuccessMessage"] = "Thêm vào giỏ hàng thành công!";
         return Redirect(Request.Headers["Referer"].ToString());
     }
-
     [HttpPost]
     public IActionResult UpdateCart(int productId, int quantity)
     {
         int? userId = GetUserSession();
-        if (userId == null) return RedirectToAction("Index", "Login");
+        if (userId == null)
+        {
+            return Json(new { success = false, message = "Bạn chưa đăng nhập!" });
+        }
 
-        if (quantity < 0) return BadRequest("Số lượng không hợp lệ");
+        if (quantity < 0)
+        {
+            return Json(new { success = false, message = "Số lượng không hợp lệ!" });
+        }
 
         var cartItem = _context.CartItems.FirstOrDefault(c => c.UserId == userId && c.ProductId == productId);
 
@@ -105,9 +110,20 @@ public class CartController : Controller
                 cartItem.Quantity = quantity;
             }
             _context.SaveChanges();
+
+            // Tính tổng tiền của sản phẩm và tổng giỏ hàng
+            decimal itemTotal = cartItem.Quantity * cartItem.Price;
+            decimal cartTotal = _context.CartItems.Where(c => c.UserId == userId).Sum(c => c.Quantity * c.Price);
+
+            return Json(new
+            {
+                success = true,
+                itemTotal = itemTotal,
+                cartTotal = cartTotal
+            });
         }
 
-        return RedirectToAction("Index");
+        return Json(new { success = false, message = "Sản phẩm không tồn tại trong giỏ hàng!" });
     }
 
     [HttpPost]
