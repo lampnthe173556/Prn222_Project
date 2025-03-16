@@ -44,8 +44,8 @@
                                 <select class="form-control" id="statusFilter">
                                     <option value="">All Status</option>
                                     <option value="0">Pending</option>
-                                    <option value="1">Completed</option>
-                                    <option value="-1">Cancelled</option>
+                                    <option value="1">Accept</option>
+                                    <option value="-1">Reject</option>
                                 </select>
                             </div>
                         </div>
@@ -228,8 +228,12 @@
                 }
 
                 // Payment method filter
-                if (payment && rowData.paymentMethod !== payment) {
-                    return false;
+                if (payment !== '') {
+                    const payId = payment;
+                    const orderPayId = rowData.payId;
+                    if (orderPayId != payId) {
+                        return false;
+                    }
                 }
 
                 return true;
@@ -277,8 +281,8 @@
                                 '0': 'Pending',
                                 // 1: 'Confirmed',
                                 // 2: 'Shipping',
-                                '1': 'Completed',
-                                '-1': 'Cancelled'
+                                '1': 'Accept',
+                                '-1': 'Reject'
                             };
                             return `<span class="badge badge-${statusClasses[data]}">${statusNames[data]}</span>`;
                         }

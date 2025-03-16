@@ -36,7 +36,8 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
                     o.Status,
                     PaymentMethod = o.Pay.PaymentName,
                     o.TotalAmount,
-                    o.Comment
+                    o.Comment,
+                    payId = o.PayId
                 })
                 .OrderByDescending(o => o.OrderDate)
                 .ToListAsync();

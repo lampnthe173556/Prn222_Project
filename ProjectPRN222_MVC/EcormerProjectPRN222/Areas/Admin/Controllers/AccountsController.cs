@@ -27,6 +27,7 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
         {
             var accounts = await _context.Accounts
                 .Include(a => a.Role)
+                .Where(a => a.RoleId !=1)
                 .Select(a => new {
                     a.UserId,
                     a.Username,

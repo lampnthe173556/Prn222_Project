@@ -20,17 +20,7 @@
                                     <input type="text" class="form-control" id="nameFilter" placeholder="Search by username or full name">
                                 </div>
                             </div>
-                        </div>
-                        <div class="col-md-4">
-                            <div class="form-group mb-0">
-                                <label>Role</label>
-                                <select class="form-control" id="roleFilter">
-                                    <option value="">All Roles</option>
-                                    <option value="Admin">Admin</option>
-                                    <option value="Customer">Customer</option>
-                                </select>
-                            </div>
-                        </div>
+                        </div>                      
                         <div class="col-md-4">
                             <div class="form-group mb-0">
                                 <label>Status</label>
@@ -151,20 +141,14 @@
             // Custom filtering function
             $.fn.dataTable.ext.search.push(function(settings, data, dataIndex, rowData) {
                 // Get filter values
-                const name = $('#nameFilter').val().toLowerCase();
-                const role = $('#roleFilter').val();
+                const name = $('#nameFilter').val().toLowerCase();              
                 const status = $('#statusFilter').val();
 
                 // Name/Username filter (checks both username and full name)
                 if (name && !rowData.username.toLowerCase().includes(name) &&
                     !rowData.fullName.toLowerCase().includes(name)) {
                     return false;
-                }
-
-                // Role filter
-                if (role && rowData.roleName !== role) {
-                    return false;
-                }
+                }                              
 
                 // Status filter
                 if (status !== '' && rowData.status != status) {
