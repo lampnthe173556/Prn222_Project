@@ -78,10 +78,9 @@
                                 <td>
                                     <form asp-controller="Cart" asp-action="UpdateCart" method="post">
                                         <input type="hidden" name="productId" value="@item.ProductId" />
-                                        <input type="number" name="quantity" value="@item.Quantity" min="1" class="form-control" style="width: 60px; display: inline;" />
-                                        <button type="submit" class="btn btn-primary btn-sm">
-                                            <i class="fa fa-refresh"></i>
-                                        </button>
+                                        <input type="number" name="quantity" value="@item.Quantity" min="1"
+                                               class="form-control quantity-input"
+                                               data-product-id="@item.ProductId" style="width: 60px; display: inline;" />
                                     </form>
                                 </td>
                                 <td>$@(item.Price * item.Quantity)</td>
@@ -97,6 +96,9 @@
                         }
                     </tbody>
                 </table>
+                <div class="d-flex justify-content-end mt-3">
+                    <h5>Total: <span id="cart-total">$@Model.Sum(item => item.Price * item.Quantity)</span></h5>
+                </div>
 
                 <div class="d-flex justify-content-between">
                     <a href="@Url.Action("Index", "Home")" class="btn btn-secondary">Back to Home</a>
@@ -112,5 +114,32 @@
     <script src="~/styles/bootstrap4/popper.js"></script>
     <script src="~/styles/bootstrap4/bootstrap.min.js"></script>
     <script src="~/js/custom.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            $(".quantity-input").on("change", function () {
+                var productId = $(this).data("product-id");
+                var newQuantity = $(this).val();
+                var $row = $(this).closest("tr");
+
+                $.ajax({
+                    url: "/Cart/UpdateCart",
+                    type: "POST",
+                    data: { productId: productId, quantity: newQuantity },
+                    success: function (response) {
+                        if (response.success) {
+                            // Cập nhật giá từng dòng
+                            $row.find("td:nth-child(4)").text("$" + response.itemTotal.toFixed(2));
+                            // Cập nhật tổng giá giỏ hàng
+                            $("#cart-total").text("$" + response.cartTotal.toFixed(2));
+                        }
+                    },
+                    error: function () {
+                        alert("Error updating cart. Please try again.");
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>

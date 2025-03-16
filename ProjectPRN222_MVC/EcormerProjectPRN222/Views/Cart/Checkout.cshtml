@@ -1,0 +1,96 @@
+﻿@model EcormerProjectPRN222.Models.CheckoutViewModel
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Checkout</title>
+    <link rel="stylesheet" href="~/styles/bootstrap4/bootstrap.min.css">
+    <link rel="stylesheet" href="~/plugins/font-awesome-4.7.0/css/font-awesome.min.css">
+    <link rel="stylesheet" href="~/styles/main_styles.css">
+    <link rel="stylesheet" href="~/styles/responsive.css">
+</head>
+<body class="bg-light">
+    @Html.Partial("~/Views/ParticalView/Header.cshtml")
+    <br>
+    <br>
+    <br>
+    <br />
+    <br />
+    <br />
+    <div class="container">
+        <div class="cart-card bg-white p-4">
+            <h4><i class="fa fa-shopping-cart"></i> Checkout</h4>
+            <hr />
+            <div class="row">
+                <!-- Thông tin khách hàng -->
+                <div class="col-md-6">
+                    <h3>Thông tin khách hàng</h3>
+                    <form asp-action="Checkout" method="post">
+                        <div class="form-group">
+                            <label>Họ tên khách hàng</label>
+                            <input type="text" name="CustomerName" required class="form-control" autocomplete="off" />
+                        </div>
+                        <div class="form-group">
+                            <label>Số điện thoại</label>
+                            <input type="text" name="Phone" class="form-control" autocomplete="off" />
+                        </div>
+                        <div class="form-group">
+                            <label>Địa chỉ</label>
+                            <input type="text" name="Address" class="form-control" autocomplete="off" />
+                        </div>
+                       
+                        <div class="form-group">
+                            <label>Hình thức thanh toán</label>
+                            <select class="form-control" name="TypePayment">
+                                <option value="1" selected>COD</option>
+                                <option value="2">Chuyển khoản</option>
+                            </select>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Thông tin sản phẩm -->
+                <div class="col-md-6">
+                    <h3>Thông tin sản phẩm</h3>
+                    <table class="table table-hover text-center">
+                        <thead class="table-dark">
+                            <tr>
+                                <th>Product</th>
+                                <th>Price</th>
+                                <th>Quantity</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.CartItems)
+                            {
+                                <tr>
+                                    <td>@item.ProductName</td>
+                                    <td>$@item.Price.ToString("0.00")</td>
+                                    <td>@item.Quantity</td>
+                                    <td>$@((item.Price * item.Quantity).ToString("0.00"))</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <div class="d-flex justify-content-end mt-3">
+                        <h5>Total: <span id="cart-total">$@Model.CartItems.Sum(item => item.Price * item.Quantity).ToString("0.00")</span></h5>
+                    </div>
+                    <div class="form-group">
+                        <button type="submit" class="btn btn-block btn-success">Đặt hàng</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @Html.Partial("~/Views/ParticalView/Footer.cshtml")
+
+    <script src="~/js/jquery-3.2.1.min.js"></script>
+    <script src="~/styles/bootstrap4/popper.js"></script>
+    <script src="~/styles/bootstrap4/bootstrap.min.js"></script>
+    <script src="~/js/custom.js"></script>
+</body>
+</html>

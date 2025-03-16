@@ -1,6 +1,7 @@
 ﻿using EcormerProjectPRN222.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
+using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 
 public class CartController : Controller
 {
@@ -50,8 +51,9 @@ public class CartController : Controller
     }
 
     [HttpPost]
-    public IActionResult AddToCart(int productId, string productName, string img, decimal price, int quantity = 1)
+    public IActionResult AddToCart(int productId, string productName, string img, decimal price, int quantity)
     {
+
         int userId = GetUserSession();
         if (userId == null) return RedirectToAction("Index", "Login"); 
 
@@ -77,16 +79,23 @@ public class CartController : Controller
         }
 
         _context.SaveChanges();
-        return RedirectToAction("Index", "Home");
-    }
 
+        TempData["SuccessMessage"] = "Thêm vào giỏ hàng thành công!";
+        return Redirect(Request.Headers["Referer"].ToString());
+    }
     [HttpPost]
     public IActionResult UpdateCart(int productId, int quantity)
     {
         int? userId = GetUserSession();
-        if (userId == null) return RedirectToAction("Index", "Login");
+        if (userId == null)
+        {
+            return Json(new { success = false, message = "Bạn chưa đăng nhập!" });
+        }
 
-        if (quantity < 0) return BadRequest("Số lượng không hợp lệ");
+        if (quantity < 0)
+        {
+            return Json(new { success = false, message = "Số lượng không hợp lệ!" });
+        }
 
         var cartItem = _context.CartItems.FirstOrDefault(c => c.UserId == userId && c.ProductId == productId);
 
@@ -101,9 +110,20 @@ public class CartController : Controller
                 cartItem.Quantity = quantity;
             }
             _context.SaveChanges();
+
+            // Tính tổng tiền của sản phẩm và tổng giỏ hàng
+            decimal itemTotal = cartItem.Quantity * cartItem.Price;
+            decimal cartTotal = _context.CartItems.Where(c => c.UserId == userId).Sum(c => c.Quantity * c.Price);
+
+            return Json(new
+            {
+                success = true,
+                itemTotal = itemTotal,
+                cartTotal = cartTotal
+            });
         }
 
-        return RedirectToAction("Index");
+        return Json(new { success = false, message = "Sản phẩm không tồn tại trong giỏ hàng!" });
     }
 
     [HttpPost]
@@ -120,5 +140,86 @@ public class CartController : Controller
             _context.SaveChanges();
         }
         return RedirectToAction("Index");
+    }
+    //Checkout
+    public IActionResult Checkout()
+    {
+        var userJson = HttpContext.Session.GetString("user");
+        if (userJson == null)
+        {
+            return RedirectToAction("Index", "Login");
+        }
+
+        var user = JsonSerializer.Deserialize<Account>(userJson);
+        ViewBag.User = user;
+
+        int? userId = GetUserSession();
+        if (userId == null) return RedirectToAction("Index", "Login");
+
+        var cartItems = _context.CartItems.Where(c => c.UserId == userId).ToList();
+        var model = new CheckoutViewModel
+        {
+            CartItems = cartItems
+        };
+        return View(model);
+    }
+
+    [HttpPost]
+    public IActionResult Checkout(CheckoutViewModel model)
+    {
+        if (ModelState.IsValid)
+        {
+            var userJson = HttpContext.Session.GetString("user");
+            if (userJson == null)
+            {
+                return RedirectToAction("Index", "Login");
+            }
+
+            var user = JsonSerializer.Deserialize<Account>(userJson);
+            int userId = user.UserId;
+
+            var order = new Order
+            {
+                UserId = userId,
+                OrderDate = DateOnly.FromDateTime(DateTime.Now),
+                LocationOrder = model.Address,
+                FullName = model.CustomerName,
+                PhoneNumber = model.Phone,
+                Status = 1, // Assuming 1 is the status for a new order
+                PayId = model.TypePayment,
+                TotalAmount = (double?)model.CartItems.Sum(item => item.Price * item.Quantity)
+            };
+
+            _context.Orders.Add(order);
+            _context.SaveChanges();
+
+            foreach (var item in model.CartItems)
+            {
+                var orderDetail = new OrderDetail
+                {
+                    OderId = order.OrderId,
+                    ProductId = item.ProductId,
+                    Quanity = item.Quantity,
+                    Price = item.Price
+                };
+                _context.OrderDetails.Add(orderDetail);
+            }
+
+            _context.SaveChanges();
+
+            // Clear the cart after checkout
+            var cartItems = _context.CartItems.Where(c => c.UserId == userId).ToList();
+            _context.CartItems.RemoveRange(cartItems);
+            _context.SaveChanges();
+
+            return RedirectToAction("PaymentSuccess");
+        }
+
+        return View(model);
+    }
+
+    public IActionResult PaymentSuccess()
+    {
+        return View();
     }
 }

@@ -14,7 +14,45 @@
     <link rel="stylesheet" type="text/css" href="~/plugins/jquery-ui-1.12.1.custom/jquery-ui.css">
     <link rel="stylesheet" type="text/css" href="~/styles/categories_styles.css">
     <link rel="stylesheet" type="text/css" href="~/styles/categories_responsive.css">
+    <link rel="stylesheet" type="text/css" href="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.css">
 </head>
+
+<style>
+    .add-to-cart-button {
+        background: linear-gradient(to bottom, #ff3d3d, #cc0000); /* Hiệu ứng chuyển màu đỏ */
+        color: white; /* Chữ trắng */
+        padding: 7px 16px; /* Kích thước nút nhỏ hơn */
+        font-size: 14px; /* Chữ nhỏ hơn */
+        font-weight: bold;
+        border: none; /* Không viền */
+        border-radius: 8px; /* Bo góc mềm */
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 6px; /* Khoảng cách giữa icon và chữ */
+        box-shadow: 2px 4px 8px rgba(255, 0, 0, 0.3); /* Đổ bóng */
+        transition: all 0.2s ease-in-out;
+        margin-left: 40px;
+        position: relative;
+    }
+
+        .add-to-cart-button:hover {
+            background: linear-gradient(to bottom, #ff1a1a, #b30000); /* Hover màu đậm hơn */
+            transform: scale(1.05); /* Phóng to nhẹ khi hover */
+            box-shadow: 0px 5px 15px rgba(255, 0, 0, 0.4); /* Tăng bóng */
+        }
+
+        .add-to-cart-button:active {
+            transform: scale(0.95); /* Nhấn xuống nhẹ */
+        }
+
+    .cart-icon {
+        width: 18px; /* Kích thước icon nhỏ hơn */
+        height: 18px;
+    }
+
+  
+</style>
 
 <body>
 
@@ -212,7 +250,19 @@
                                                     </div>
 
 
-                                                    <div class="red_button add_to_cart_button"><a href="#">add to cart</a></div>
+                                                    <div class="add_to_cart_button">
+                                                        <form asp-controller="Cart" asp-action="AddToCart" method="post">
+                                                            <input type="hidden" name="productId" value="@(item.ProductId)" />
+                                                            <input type="hidden" name="productName" value="@(item.ProductName)" />
+                                                            <input type="hidden" name="img" value="@(item.Img)" />
+                                                            <input type="hidden" name="price" value="@(item.Price)" />
+                                                            <input type="hidden" id="cart_quantity" name="quantity" value="1" />
+
+                                                            <button type="submit" class="add-to-cart-button">
+                                                                🛒 Add to Cak
+                                                            </button>
+                                                        </form>
+                                                    </div>
                                                 </div>
                                             }
                                             else if (item.CategoryId == 2)
@@ -372,6 +422,17 @@
     <script src="~/plugins/easing/easing.js"></script>
     <script src="~/plugins/jquery-ui-1.12.1.custom/jquery-ui.js"></script>
     <script src="~/js/categories_custom.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/toastr.js/latest/toastr.min.js"></script>
+
+
+    <script>
+        $(document).ready(function () {
+            var successMessage = '@TempData["SuccessMessage"]';
+            if (successMessage) {
+                toastr.success(successMessage, "Thông báo");
+            }
+        });
+    </script>
 </body>
 
 </html>

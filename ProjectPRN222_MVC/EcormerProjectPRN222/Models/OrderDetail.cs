@@ -10,6 +10,7 @@ public partial class OrderDetail
     public int ProductId { get; set; }
 
     public int Quanity { get; set; }
+    public decimal Price { get; set; }
 
     public virtual Order Order { get; set; } = null!;
 
