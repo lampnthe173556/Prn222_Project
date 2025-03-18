@@ -13,15 +13,13 @@ public class CartController : Controller
     }
 
     // chỉ lấy UserId khi người dùng đăng nhập
-    public int GetUserSession()
+    public int? GetUserSession()
     {
         var userJson = HttpContext.Session.GetString("user");
-        if (userJson != null)
-        {
-            var user = JsonSerializer.Deserialize<Account>(userJson);
-            return user.UserId; // trả về UserId 
-        }
-        return 0; // 
+        if (string.IsNullOrEmpty(userJson)) return null;
+
+        var user = JsonSerializer.Deserialize<Account>(userJson);
+        return user?.UserId; // Trả về UserId hoặc null nếu không có
     }
 
     public int GetCartCount()
@@ -43,7 +41,11 @@ public class CartController : Controller
         ViewBag.User = user;
 
         int? userId = GetUserSession();
-        if (userId == null) return RedirectToAction("Index", "Login"); // ko có ID thì về trang Login
+        if (userId == null)
+        {
+            TempData["ErrorMessage"] = "Bạn chưa đăng nhập!";
+            return RedirectToAction("Index", "Login");
+        } // ko có ID thì về trang Login
 
         var cartItems = _context.CartItems.Where(c => c.UserId == userId).ToList();
         ViewBag.cartItems = cartItems;
@@ -54,8 +56,8 @@ public class CartController : Controller
     public IActionResult AddToCart(int productId, string productName, string img, decimal price, int quantity)
     {
 
-        int userId = GetUserSession();
-        if (userId == null) return RedirectToAction("Index", "Login"); 
+        int? userId = GetUserSession();
+        if (userId == null) return RedirectToAction("Index", "Login");
 
         if (quantity <= 0) return BadRequest("Số lượng sản phẩm không hợp lệ");
 
@@ -130,7 +132,7 @@ public class CartController : Controller
     public IActionResult RemoveFromCart(int productId)
     {
         int? userId = GetUserSession();
-        if (userId == null) return RedirectToAction("Index", "Login"); 
+        if (userId == null) return RedirectToAction("Index", "Login");
 
         var cartItem = _context.CartItems.FirstOrDefault(c => c.UserId == userId && c.ProductId == productId);
 

@@ -1,4 +1,4 @@
-﻿@model IEnumerable<EcormerProjectPRN222.Models.OrderDetail>
+﻿@model IEnumerable<EcormerProjectPRN222.Models.Order>
 
 <!DOCTYPE html>
 <html lang="en">
@@ -20,10 +20,10 @@
             background: white;
         }
 
-        .order-history-card h4 {
-            text-align: center;
-            margin-bottom: 20px;
-        }
+            .order-history-card h4 {
+                text-align: center;
+                margin-bottom: 20px;
+            }
     </style>
 </head>
 <body class="bg-light">
@@ -48,36 +48,64 @@
                             <th>Order Date</th>
                             <th>Location</th>
                             <th>Status</th>
-                            <th>Product</th>
                             <th>Comment</th>
                             <th>Payment</th>
                             <th>Total Price ($)</th>
+                            <th>Actions</th>
                         </tr>
                     </thead>
                     <tbody>
                         @foreach (var order in Model)
                         {
                             <tr class="align-middle">
-                                <td>@order.OderId</td>
-                                <td>@order.Order.OrderDate.ToString("yyyy-MM-dd")</td>
-                                <td>@order.Order.LocationOrder</td>
+                                <td>@order.OrderId</td>
+                                <td>@order.OrderDate.ToString("yyyy-MM-dd")</td>
+                                <td>@order.LocationOrder</td>
                                 <td>
-                                    <span class="badge @(order.Order.Status == 0 ? "bg-success" : order.Order.Status == 1 ? "bg-primary" : "bg-warning text-dark")">
-                                        @(order.Order.Status == 0 ? "Delivered" : order.Order.Status == 1 ? "Shipped" : "Pending")
+                                    <span class="badge @(order.Status == 0 ? "bg-success" : order.Status == 1 ? "bg-primary" : "bg-warning text-dark")">
+                                        @(order.Status == 0 ? "Pending" : order.Status == 1 ? "Accepted" : "Rejected")
                                     </span>
                                 </td>
+                                <td>@order.Comment</td>
+                                <td>@order.Pay.PaymentName</td>
+                                <td>@order.TotalAmount?.ToString("N2")</td>
                                 <td>
-                                    <ul class="list-unstyled">
-                                        <li>@order.Product.ProductName</li>
-                                    </ul>
+                                    <button class="btn btn-info btn-sm view-details" data-orderid="@order.OrderId">
+                                        <i class="fa fa-eye"></i>
+                                    </button>
                                 </td>
-                                <td>@order.Order.Comment</td>
-                                <td>@order.Order.Pay.PaymentName</td>
-                                <td>@order.Order.TotalAmount?.ToString("N2")</td>
                             </tr>
                         }
                     </tbody>
                 </table>
+            </div>
+        </div>
+    </div>
+    <!-- Order Details Modal (Bootstrap 4) -->
+    <div class="modal fade" id="orderDetailsModal" tabindex="-1" role="dialog" aria-labelledby="orderDetailsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="orderDetailsModalLabel">Order Details</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Product Name</th>
+                                <th>Quantity</th>
+                                <th>Price</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody id="orderDetailsBody">
+                            <!-- Data will be inserted dynamically -->
+                        </tbody>
+                    </table>
+                </div>
             </div>
         </div>
     </div>
@@ -89,5 +117,40 @@
     <script src="~/styles/bootstrap4/bootstrap.min.js"></script>
     <script src="~/js/custom.js"></script>
 
+    <script>
+        $(document).ready(function () {
+            $(".view-details").click(function () {
+                var orderId = $(this).data("orderid");
+
+                $.ajax({
+                    url: "/Profile/GetOrderDetails",
+                    type: "GET",
+                    data: { orderId: orderId },
+                    success: function (data) {
+                        var tableBody = $("#orderDetailsBody");
+                        tableBody.empty();
+
+                        if (data.length === 0) {
+                            tableBody.append("<tr><td colspan='4' class='text-center'>No details found</td></tr>");
+                        } else {
+                            $.each(data, function (i, item) {
+                                tableBody.append(
+                                    "<tr>" +
+                                    "<td>" + item.productName + "</td>" +
+                                    "<td>" + item.quantity + "</td>" +
+                                    "<td>$" + item.price.toFixed(2) + "</td>" +
+                                    "<td>$" + item.total.toFixed(2) + "</td>" +
+                                    "</tr>"
+                                );
+                            });
+                        }
+
+                        $("#orderDetailsModal").modal("show");
+                    }
+                });
+            });
+        });
+    </script>
+    }
 </body>
 </html>

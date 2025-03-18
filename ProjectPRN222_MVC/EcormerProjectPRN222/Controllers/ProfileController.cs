@@ -171,63 +171,61 @@ namespace EcormerProjectPRN222.Controllers
         [HttpPost]
         public IActionResult ChangePassword(string currentPassword, string newPassword, string confirmPassword)
         {
-
             try
             {
+                var userJson = HttpContext.Session.GetString("user");
+                if (userJson == null)
+                {
+                    ViewBag.UpdateStatus = "Fail: User not logged in";
+                    return View();
+                }
+
+                var user = JsonSerializer.Deserialize<Account>(userJson);
+                var existingAccount = _context.Accounts.FirstOrDefault(a => a.UserId == user.UserId);
+
+                if (existingAccount == null)
+                {
+                    ViewBag.UpdateStatus = "Fail: Account not found";
+
+                    return View();
+                }
+
+                // Kiểm tra mật khẩu hiện tại có đúng không
+                if (!existingAccount.Password.Equals(currentPassword))
+                {
+                    ViewBag.UpdateStatus = "Fail: Current password is incorrect";
+                    var usera = JsonSerializer.Deserialize<Account>(userJson);
+                    ViewBag.User = usera;
+                    return View();
+                }
+
+                // Kiểm tra nếu mật khẩu mới giống mật khẩu cũ
                 if (currentPassword.Equals(newPassword))
                 {
-                    //ghi user vao session
-                    var userJson = HttpContext.Session.GetString("user");
-                    var user = JsonSerializer.Deserialize<Account>(userJson);
-                    ViewBag.User = user;
-
-                    var account = _context.Accounts.Find(user.UserId);
-                    ViewBag.UpdateStatus = "The new password same as old password";
-                    var userJsonUpdated = JsonSerializer.Serialize(account);
-                    HttpContext.Session.SetString("user", userJsonUpdated);
-
+                    ViewBag.UpdateStatus = "Fail: The new password is the same as the old password";
+                    var usera = JsonSerializer.Deserialize<Account>(userJson);
+                    ViewBag.User = usera;
+                    return View();
                 }
+
+                // Kiểm tra nếu mật khẩu xác nhận không khớp
                 if (!newPassword.Equals(confirmPassword))
                 {
-                    var userJson = HttpContext.Session.GetString("user");
-                    var user = JsonSerializer.Deserialize<Account>(userJson);
-                    ViewBag.User = user;
-
-                    var account = _context.Accounts.Find(user.UserId);
-                    ViewBag.UpdateStatus = "The confirm password isn't same as new password";
-                    var userJsonUpdated = JsonSerializer.Serialize(account);
-                    HttpContext.Session.SetString("user", userJsonUpdated);
+                    ViewBag.UpdateStatus = "Fail: The confirm password doesn't match the new password";
+                    var usera = JsonSerializer.Deserialize<Account>(userJson);
+                    ViewBag.User = usera;
+                    return View();
                 }
-                else
-                {
-                    var userJson = HttpContext.Session.GetString("user");
-                    var user = JsonSerializer.Deserialize<Account>(userJson);
 
+                // Cập nhật mật khẩu mới
+                existingAccount.Password = newPassword;
+                _context.Accounts.Update(existingAccount);
+                _context.SaveChanges();
 
-                    var existingAccount = _context.Accounts.FirstOrDefault(a => a.UserId == user.UserId);
-                    if (existingAccount == null)
-                    {
-                        ViewBag.UpdateStatus = "Fail: Account not found";
-                        return View(user);
-                    }
-
-                    // Cập nhật giá trị mới vào tài khoản đang tracking
-
-                    existingAccount.Password = newPassword;
-
-                    _context.Accounts.Update(existingAccount);
-
-                    _context.SaveChanges();
-
-                    // Cập nhật session
-                    userJson = JsonSerializer.Serialize(existingAccount);
-                    HttpContext.Session.SetString("user", userJson);
-                    user = JsonSerializer.Deserialize<Account>(userJson);
-                    ViewBag.UpdateStatus = "Success";
-
-                    ViewBag.User = user;
-
-                }
+                // Cập nhật session
+                userJson = JsonSerializer.Serialize(existingAccount);
+                HttpContext.Session.SetString("user", userJson);
+                ViewBag.UpdateStatus = "Success";
 
             }
             catch (DbUpdateException ex)
@@ -252,22 +250,29 @@ namespace EcormerProjectPRN222.Controllers
             var user = JsonSerializer.Deserialize<Account>(userJson);
             ViewBag.User = user;
 
-            var orders = _context.OrderDetails
-                .Include(od => od.Product) // Load thông tin từ bảng Product
-                .Include(od => od.Order) // Load thông tin từ bảng Order
-                    .ThenInclude(o => o.Pay) // Load thông tin từ bảng Payment
-                .Where(od => od.Order.UserId == user.UserId) // Lọc theo UserId
-                .GroupBy(od => new { od.Order.OrderId, od.ProductId }) // Nhóm theo OrderId và ProductId
-                .Select(g => new OrderDetail
-                {
-                    OderId = g.Key.OrderId,
-                    ProductId = g.Key.ProductId,
-                    Quanity = g.Sum(od => od.Quanity), // Cộng dồn số lượng
-                    Product = g.First().Product, // Lấy thông tin sản phẩm
-                    Order = g.First().Order // Lấy thông tin đơn hàng
-                }).OrderBy(od => od.OderId) // Sort theo ID đơn hàng
+            // Lấy danh sách đơn hàng của user
+            var orders = _context.Orders
+                .Include(o => o.Pay) // Load thông tin thanh toán
+                .Where(o => o.UserId == user.UserId) // Lọc theo UserId
+                .OrderByDescending(o => o.OrderDate) // Sort theo ngày đặt hàng mới nhất
                 .ToList();
+
             return View(orders);
+        }
+        public IActionResult GetOrderDetails(int orderId)
+        {
+            var orderDetails = _context.OrderDetails
+                .Include(od => od.Product) // Load thông tin sản phẩm
+                .Where(od => od.OderId == orderId) // Lọc theo OrderId
+                .Select(od => new
+                {
+                    ProductName = od.Product.ProductName,
+                    Quantity = od.Quanity,
+                    Price = od.Product.Price,
+                    Total = od.Quanity * od.Product.Price
+                }).ToList();
+
+            return Json(orderDetails);
         }
     }
 }
