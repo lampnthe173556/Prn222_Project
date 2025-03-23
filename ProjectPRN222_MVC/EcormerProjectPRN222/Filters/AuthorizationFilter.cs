@@ -20,7 +20,22 @@ namespace EcormerProjectPRN222.Filters
             
             if (string.IsNullOrEmpty(userJson))
             {
-                context.Result = new RedirectToActionResult("Index", "Login", null);
+                // For admin area, redirect with returnUrl
+                var isAdminArea = context.RouteData.Values["area"]?.ToString()?.Equals("Admin", StringComparison.OrdinalIgnoreCase) ?? false;
+                if (isAdminArea)
+                {
+                    var returnUrl = context.HttpContext.Request.Path;
+                    var routeValues = new RouteValueDictionary();
+                    routeValues["area"] = "";
+                    routeValues["returnUrl"] = returnUrl;
+                    context.Result = new RedirectToActionResult("Index", "Login", routeValues);
+                }
+                else
+                {
+                    var routeValues = new RouteValueDictionary();
+                    routeValues["area"] = "";
+                    context.Result = new RedirectToActionResult("Index", "Login", routeValues);
+                }
                 return;
             }
 
@@ -28,7 +43,17 @@ namespace EcormerProjectPRN222.Filters
             
             if (user == null || user.RoleId != _requiredRole)
             {
-                context.Result = new RedirectToActionResult("AccessDenied", "Login", null);
+                // Clear session and cookies on unauthorized access
+                context.HttpContext.Session.Clear();
+                foreach (var cookie in context.HttpContext.Request.Cookies.Keys)
+                {
+                    context.HttpContext.Response.Cookies.Delete(cookie);
+                }
+
+                // Redirect to access denied
+                var routeValues = new RouteValueDictionary();
+                routeValues["area"] = "";
+                context.Result = new RedirectToActionResult("AccessDenied", "Login", routeValues);
                 return;
             }
 

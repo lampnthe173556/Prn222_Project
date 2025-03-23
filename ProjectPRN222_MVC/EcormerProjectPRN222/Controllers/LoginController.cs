@@ -21,7 +21,7 @@ namespace EcormerProjectPRN222.Controllers
             return View();
         }
         [HttpPost]
-        public IActionResult Index(string email, string password, string remember_me)
+        public IActionResult Index(string email, string password, string remember_me, string returnUrl)
         {
             Account account = AccountDAO.GetAccount(email, password);
             if (remember_me != null)
@@ -56,19 +56,23 @@ namespace EcormerProjectPRN222.Controllers
             }
             if (account != null)
             {
-                if(account.RoleId == 0)
+                var userJson = JsonSerializer.Serialize(account);
+                HttpContext.Session.SetString("user", userJson);
+
+                // If there's a returnUrl and it's a local URL, redirect there
+                if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 {
-                    var userJson = JsonSerializer.Serialize(account);
-                    HttpContext.Session.SetString("user", userJson);
+                    return Redirect(returnUrl);
+                }
+
+                // Otherwise redirect based on role
+                if (account.RoleId == 0)
+                {
                     return RedirectToAction("Index", "Home");
                 }
                 else
                 {
-                    var userJson = JsonSerializer.Serialize(account);
-                    HttpContext.Session.SetString("user", userJson);
-                    
                     return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
-
                 }
 
             }
