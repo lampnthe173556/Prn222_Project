@@ -5,8 +5,7 @@ using System.Linq;
 
 namespace EcormerProjectPRN222.Areas.Admin.Controllers
 {
-    [Area("Admin")]
-    public class DashboardController : Controller
+    public class DashboardController : AdminBaseController
     {
         private readonly MyProjectClothingContext _context;
         public DashboardController(MyProjectClothingContext context) 

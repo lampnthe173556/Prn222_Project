@@ -5,7 +5,7 @@ using EcormerProjectPRN222.Models;
 namespace EcormerProjectPRN222.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    public class PaymentsController : Controller
+    public class PaymentsController : AdminBaseController
     {
         private readonly MyProjectClothingContext _context;
 

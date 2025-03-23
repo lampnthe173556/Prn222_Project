@@ -40,6 +40,8 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
+// Add authentication before authorization
+app.UseAuthentication();
 app.UseAuthorization();
 
 // Add area routing before default route

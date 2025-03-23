@@ -6,7 +6,7 @@ using EcormerProjectPRN222.Models;
 namespace EcormerProjectPRN222.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    public class ProductsController : Controller
+    public class ProductsController : AdminBaseController
     {
         private readonly MyProjectClothingContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;

@@ -1,9 +1,10 @@
-﻿using EcormerProjectPRN222.Models;
+﻿using EcormerProjectPRN222.Controllers;
+using EcormerProjectPRN222.Models;
 using Microsoft.AspNetCore.Mvc;
 using System.Text.Json;
 using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
 
-public class CartController : Controller
+public class CartController : UserBaseController
 {
     private readonly MyProjectClothingContext _context;
 
@@ -67,7 +68,7 @@ public class CartController : Controller
         {
             _context.CartItems.Add(new CartItem
             {
-                UserId = userId,
+                UserId = (int)userId,
                 ProductId = productId,
                 ProductName = productName,
                 Img = img,
