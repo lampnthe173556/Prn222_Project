@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Mvc.Rendering;
 namespace EcormerProjectPRN222.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    public class AccountsController : Controller
+    public class AccountsController : AdminBaseController
     {
         private readonly MyProjectClothingContext _context;
 

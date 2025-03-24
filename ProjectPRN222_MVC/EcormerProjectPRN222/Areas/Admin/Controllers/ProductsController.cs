@@ -6,7 +6,7 @@ using EcormerProjectPRN222.Models;
 namespace EcormerProjectPRN222.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    public class ProductsController : Controller
+    public class ProductsController : AdminBaseController
     {
         private readonly MyProjectClothingContext _context;
         private readonly IWebHostEnvironment _webHostEnvironment;
@@ -156,37 +156,7 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
             return Json(new { success = false, message = "Invalid data" });
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var product = await _context.Products.FindAsync(id);
-            if (product == null)
-            {
-                return Json(new { success = false, message = "Product not found" });
-            }
-
-            try
-            {
-                if (!string.IsNullOrEmpty(product.Img))
-                {
-                    var imagePath = Path.Combine(_webHostEnvironment.WebRootPath, product.Img.TrimStart('/'));
-                    if (System.IO.File.Exists(imagePath))
-                    {
-                        System.IO.File.Delete(imagePath);
-                    }
-                }
-
-                _context.Products.Remove(product);
-                await _context.SaveChangesAsync();
-                return Json(new { success = true, message = "Product deleted successfully" });
-            }
-            catch (Exception)
-            {
-                return Json(new { success = false, message = "Error deleting product" });
-            }
-        }
-
+      
         private bool ProductExists(int id)
         {
             return _context.Products.Any(e => e.ProductId == id);

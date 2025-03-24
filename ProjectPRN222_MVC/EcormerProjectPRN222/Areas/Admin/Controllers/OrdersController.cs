@@ -2,11 +2,12 @@
 using Microsoft.EntityFrameworkCore;
 using EcormerProjectPRN222.Models;
 using Microsoft.AspNetCore.Mvc.Rendering;
+using Microsoft.Data.SqlClient;
 
 namespace EcormerProjectPRN222.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    public class OrdersController : Controller
+    public class OrdersController : AdminBaseController
     {
         private readonly MyProjectClothingContext _context;
 
@@ -31,15 +32,15 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
                 .Select(o => new {
                     o.OrderId,
                     o.OrderDate,
-                    CustomerName = o.User.FullName,
+                    CustomerName = o.User != null ? o.User.FullName : "Unknown",
                     o.LocationOrder,
                     o.Status,
-                    PaymentMethod = o.Pay.PaymentName,
-                    o.TotalAmount,
-                    o.Comment,
+                    PaymentMethod = o.Pay != null ? o.Pay.PaymentName : "Unknown",
+                    TotalAmount = o.TotalAmount ?? 0,
+                    Comment = o.Comment ?? "",
                     payId = o.PayId
                 })
-                .OrderByDescending(o => o.OrderDate)
+                .OrderBy(o => o.OrderDate)
                 .ToListAsync();
 
             return Json(new { data = orders });
@@ -54,19 +55,26 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
                 .Select(o => new {
                     o.OrderId,
                     o.OrderDate,
-                    Customer = new {
-                        o.User.FullName,
-                        o.User.Email,
-                        o.User.Phone
+                    Customer = o.User != null ? new {
+                        FullName = o.User.FullName ?? "Unknown",
+                        Email = o.User.Email ?? "Unknown",
+                        Phone = o.User.Phone ?? "Unknown"
+                    } : new {
+                        FullName = "Unknown",
+                        Email = "Unknown",
+                        Phone = "Unknown"
                     },
-                    o.LocationOrder,
+                    LocationOrder = o.LocationOrder ?? "Unknown",
                     o.Status,
-                    Payment = new {
-                        o.Pay.PaymentName,
-                        o.Pay.PaymentDes
+                    Payment = o.Pay != null ? new {
+                        PaymentName = o.Pay.PaymentName ?? "Unknown",
+                        PaymentDes = o.Pay.PaymentDes ?? "Unknown"
+                    } : new {
+                        PaymentName = "Unknown",
+                        PaymentDes = "Unknown"
                     },
-                    o.TotalAmount,
-                    o.Comment
+                    TotalAmount = o.TotalAmount ?? 0,
+                    Comment = o.Comment ?? ""
                 })
                 .FirstOrDefaultAsync(o => o.OrderId == id);
 
@@ -79,10 +87,10 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
                 .Include(od => od.Product)
                 .Where(od => od.OderId == id)
                 .Select(od => new {
-                    od.Product.ProductName,
-                    od.Product.Price,
+                    ProductName = od.Product != null ? od.Product.ProductName ?? "Unknown" : "Unknown",
+                    Price = od.Product != null ? od.Product.Price : 0,
                     od.Quanity,
-                    SubTotal = od.Quanity * od.Product.Price
+                    SubTotal = od.Quanity * (od.Product != null ? od.Product.Price : 0)
                 })
                 .ToListAsync();
 
@@ -99,80 +107,49 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateStatus(int id, int status)
         {
-            var order = await _context.Orders.FindAsync(id);
-            if (order == null)
-            {
-                return Json(new { success = false, message = "Order not found" });
-            }
-
             try
             {
-                order.Status = status;
-                await _context.SaveChangesAsync();
-                return Json(new { success = true, message = "Order status updated successfully" });
-            }
-            catch (Exception)
-            {
-                return Json(new { success = false, message = "Error updating order status" });
-            }
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateOrder(int id, [FromForm] Order order)
-        {
-            if (id != order.OrderId)
-            {
-                return Json(new { success = false, message = "Invalid order ID" });
-            }
-
-            try
-            {
-                var existingOrder = await _context.Orders.FindAsync(id);
-                if (existingOrder == null)
+                // First check if order exists
+                var exists = await _context.Orders.AnyAsync(o => o.OrderId == id);
+                if (!exists)
                 {
                     return Json(new { success = false, message = "Order not found" });
                 }
 
-                existingOrder.LocationOrder = order.LocationOrder;
-                existingOrder.Status = order.Status;
-                existingOrder.Comment = order.Comment;
-                existingOrder.PayId = order.PayId;
+                // Execute parameterized SQL update with full schema name
+                var sql = @"
+                    UPDATE dbo.[Order]
+                    SET [status] = @p0
+                    WHERE [OrderID] = @p1";
 
-                await _context.SaveChangesAsync();
-                return Json(new { success = true, message = "Order updated successfully" });
+                var parameters = new[]
+                {
+                    new SqlParameter("@p0", System.Data.SqlDbType.Int) { Value = status },
+                    new SqlParameter("@p1", System.Data.SqlDbType.Int) { Value = id }
+                };
+
+                var rowsAffected = await _context.Database.ExecuteSqlRawAsync(sql, parameters);
+
+                if (rowsAffected > 0)
+                {
+                    return Json(new { success = true, message = "Order status updated successfully" });
+                }
+
+                return Json(new { success = false, message = "Update failed" });
             }
-            catch (DbUpdateConcurrencyException)
+            catch (Exception ex)
             {
-                return Json(new { success = false, message = "Error updating order" });
+                // Log the actual error for debugging
+                Console.WriteLine($"Error updating order status: {ex.Message}");
+                Console.WriteLine($"Stack trace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"Inner exception: {ex.InnerException.Message}");
+                }
+
+                return Json(new { success = false, message = $"Error updating order status: {ex.Message}" });
             }
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var order = await _context.Orders.FindAsync(id);
-            if (order == null)
-            {
-                return Json(new { success = false, message = "Order not found" });
-            }
-
-            try
-            {
-                // Delete related order details first
-                var orderDetails = await _context.OrderDetails.Where(od => od.OderId == id).ToListAsync();
-                _context.OrderDetails.RemoveRange(orderDetails);
-
-                // Then delete the order
-                _context.Orders.Remove(order);
-                await _context.SaveChangesAsync();
-                return Json(new { success = true, message = "Order deleted successfully" });
-            }
-            catch (Exception)
-            {
-                return Json(new { success = false, message = "Error deleting order" });
-            }
-        }
     }
 }

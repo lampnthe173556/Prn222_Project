@@ -111,7 +111,7 @@
                                     @* <option value="1">Confirmed</option> *@
                                     @* <option value="2">Shipping</option> *@
                                     <option value="1">Completed</option>
-                                    <option value="-1">Cancelled</option>
+                                    <option value="-1">Reject</option>
                                 </select>
                             </dd>
                         </dl>
@@ -165,8 +165,7 @@
                     </div>
                 </div>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-danger" onclick="showDeleteConfirmation()">Delete</button>
+            <div class="modal-footer">               
                 <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary" onclick="updateOrderStatus()">Update Status</button>
             </div>

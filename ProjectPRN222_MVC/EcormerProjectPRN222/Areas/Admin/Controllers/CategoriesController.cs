@@ -5,7 +5,7 @@ using EcormerProjectPRN222.Models;
 namespace EcormerProjectPRN222.Areas.Admin.Controllers
 {
     [Area("Admin")]
-    public class CategoriesController : Controller
+    public class CategoriesController : AdminBaseController
     {
         private readonly MyProjectClothingContext _context;
 
@@ -82,27 +82,7 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
             return Json(new { success = false, message = "Invalid data" });
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var category = await _context.Categories.FindAsync(id);
-            if (category == null)
-            {
-                return Json(new { success = false, message = "Category not found" });
-            }
-
-            try
-            {
-                _context.Categories.Remove(category);
-                await _context.SaveChangesAsync();
-                return Json(new { success = true, message = "Category deleted successfully" });
-            }
-            catch (Exception)
-            {
-                return Json(new { success = false, message = "Error deleting category" });
-            }
-        }
+      
 
         private bool CategoryExists(int id)
         {

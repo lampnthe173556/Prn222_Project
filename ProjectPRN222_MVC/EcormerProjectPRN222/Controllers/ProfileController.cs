@@ -5,7 +5,7 @@ using System.Text.Json;
 
 namespace EcormerProjectPRN222.Controllers
 {
-    public class ProfileController : Controller
+    public class ProfileController : UserBaseController
     {
         private readonly MyProjectClothingContext _context;
 

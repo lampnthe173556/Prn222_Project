@@ -5,8 +5,7 @@ using System.Linq;
 
 namespace EcormerProjectPRN222.Areas.Admin.Controllers
 {
-    [Area("Admin")]
-    public class DashboardController : Controller
+    public class DashboardController : AdminBaseController
     {
         private readonly MyProjectClothingContext _context;
         public DashboardController(MyProjectClothingContext context) 
@@ -18,9 +17,9 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
         {
             return status switch
             {
-                -1 => "Failed",
+                -1 => "Reject",
                 0 => "Pending",
-                1 => "Success",
+                1 => "Accept",
                 
             };
         }
@@ -76,8 +75,7 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
             var salesData = await _context.Orders
                 .Where(o => o.Status == 1)
                 .GroupBy(o => o.OrderDate)
-                .OrderBy(g => g.Key)
-                .Take(7)
+                .OrderBy(g => g.Key)               
                 .Select(g => new
                 {
                     Date = g.Key.ToString(),
