@@ -40,7 +40,7 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
                     Comment = o.Comment ?? "",
                     payId = o.PayId
                 })
-                .OrderByDescending(o => o.OrderDate)
+                .OrderBy(o => o.OrderDate)
                 .ToListAsync();
 
             return Json(new { data = orders });

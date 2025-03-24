@@ -94,7 +94,7 @@
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
+@* <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -114,7 +114,7 @@
         </div>
     </div>
 </div>
-
+ *@
 @section Scripts
 {
     <script>
@@ -172,15 +172,15 @@
                                 <button class="btn btn-sm btn-info" onclick="showEditModal(${data})">
                                     <i class="fas fa-edit"></i>
                                 </button>
-                                <button class="btn btn-sm btn-danger" onclick="showDeleteModal(${data})">
-                                    <i class="fas fa-trash"></i>
-                                </button>
+                               
                             `;
                         }
                     }
                 ]
             });
-
+             // <button class="btn btn-sm btn-danger" onclick="showDeleteModal(${data})">
+             //                        <i class="fas fa-trash"></i>
+             //                    </button>
             // Add event listeners for filter inputs
             $('#nameFilter').on('input', function() {
                 table.draw();
