@@ -24,6 +24,10 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 });
 //add email service
 builder.Services.AddSingleton<EmailService>();
+
+//VNpay
+builder.Services.AddScoped<IVnPayService, VnPayService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

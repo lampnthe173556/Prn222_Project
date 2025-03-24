@@ -10,48 +10,71 @@
     <link rel="stylesheet" href="~/plugins/font-awesome-4.7.0/css/font-awesome.min.css">
     <link rel="stylesheet" href="~/styles/main_styles.css">
     <link rel="stylesheet" href="~/styles/responsive.css">
+    <!-- Thư viện QRCode (nếu cần sử dụng trong tương lai) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+          /* Khoảng cách giữa hàng */
+        .checkout-container {
+            margin-top: 40px;
+        }
+    </style>
 </head>
 <body class="bg-light">
+    
     @Html.Partial("~/Views/ParticalView/Header.cshtml")
-    <br>
-    <br>
-    <br>
-    <br />
-    <br />
-    <br />
-    <div class="container">
-        <div class="cart-card bg-white p-4">
-            <h4><i class="fa fa-shopping-cart"></i> Checkout</h4>
-            <hr />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+            <br />
+    <div class="container checkout-container">
+        <!-- Form bọc toàn bộ nội dung -->
+        <form id="checkoutForm" asp-action="Checkout" method="post">
+            @Html.AntiForgeryToken()
             <div class="row">
-                <!-- Thông tin khách hàng -->
+                <!-- Thông tin khách hàng (cột bên trái) -->
                 <div class="col-md-6">
                     <h3>Thông tin khách hàng</h3>
-                    <form asp-action="Checkout" method="post">
-                        <div class="form-group">
-                            <label>Họ tên khách hàng</label>
-                            <input type="text" name="CustomerName" required class="form-control" autocomplete="off" />
-                        </div>
-                        <div class="form-group">
-                            <label>Số điện thoại</label>
-                            <input type="text" name="Phone" class="form-control" autocomplete="off" />
-                        </div>
-                        <div class="form-group">
-                            <label>Địa chỉ</label>
-                            <input type="text" name="Address" class="form-control" autocomplete="off" />
-                        </div>
-                       
-                        <div class="form-group">
-                            <label>Hình thức thanh toán</label>
-                            <select class="form-control" name="TypePayment">
+                    <div class="form-group">
+                        <label>Họ tên khách hàng</label>
+                        <input type="text" name="CustomerName" value="@Model.CustomerName" required class="form-control" autocomplete="off" />
+                    </div>
+                    <div class="form-group">
+                        <label>Số điện thoại</label>
+                        <input type="text" name="Phone" value="@Model.Phone" class="form-control" autocomplete="off" />
+                    </div>
+                    <div class="form-group">
+                        <label>Địa chỉ</label>
+                        <input type="text" name="Address" value="@Model.Address" class="form-control" autocomplete="off" />
+                    </div>
+                    <div class="form-group">
+                        <label>Ghi chú</label>
+                        <input type="text" name="Address" value="@Model.Comment" class="form-control" autocomplete="off" />
+                    </div>
+                    <div class="form-group">
+                        <label>Hình thức thanh toán</label>
+                        <select class="form-control" name="TypePayment" id="typePayment">
+                            @if (Model.TypePayment == 1)
+                            {
                                 <option value="1" selected>COD</option>
-                                <option value="2">Chuyển khoản</option>
-                            </select>
-                        </div>
-                    </form>
+                            }
+                            else
+                            {
+                                <option value="1">COD</option>
+                            }
+                            @if (Model.TypePayment == 2)
+                            {
+                                <option value="2" selected>Thanh toán VNPAY</option>
+                            }
+                            else
+                            {
+                                <option value="2">Thanh toán VNPAY</option>
+                            }
+                        </select>
+                    </div>
                 </div>
-
-                <!-- Thông tin sản phẩm -->
+                <!-- Thông tin sản phẩm (cột bên phải) -->
                 <div class="col-md-6">
                     <h3>Thông tin sản phẩm</h3>
                     <table class="table table-hover text-center">
@@ -64,33 +87,79 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var item in Model.CartItems)
+                            @for (int i = 0; i < Model.CartItems.Count; i++)
                             {
+                                var item = Model.CartItems[i];
                                 <tr>
-                                    <td>@item.ProductName</td>
-                                    <td>$@item.Price.ToString("0.00")</td>
-                                    <td>@item.Quantity</td>
-                                    <td>$@((item.Price * item.Quantity).ToString("0.00"))</td>
+                                    <td>
+                                        @item.ProductName
+                                        <!-- Input ẩn để post dữ liệu của CartItems -->
+                                        <input type="hidden" name="CartItems[@i].ProductId" value="@item.ProductId" />
+                                        <input type="hidden" name="CartItems[@i].ProductName" value="@item.ProductName" />
+                                    </td>
+                                    <td>
+                                        @(item.Price.ToString("N0") + " ₫")
+                                        <input type="hidden" name="CartItems[@i].Price" value="@item.Price" />
+                                    </td>
+                                    <td>
+                                        @item.Quantity
+                                        <input type="hidden" name="CartItems[@i].Quantity" value="@item.Quantity" />
+                                    </td>
+                                    <td>
+                                        @((item.Price * item.Quantity).ToString("N0") + " ₫")
+                                    </td>
                                 </tr>
                             }
+
                         </tbody>
                     </table>
                     <div class="d-flex justify-content-end mt-3">
-                        <h5>Total: <span id="cart-total">$@Model.CartItems.Sum(item => item.Price * item.Quantity).ToString("0.00")</span></h5>
+                        <h5>Total: <span id="cart-total">
+                            @(Model.CartItems.Sum(item => item.Price * item.Quantity).ToString("N0") + " ₫")
+                        </span></h5>
                     </div>
-                    <div class="form-group">
-                        <button type="submit" class="btn btn-block btn-success">Đặt hàng</button>
-                    </div>
+                  
                 </div>
             </div>
-        </div>
+           
+
+            <!-- Nút submit chung cho form -->
+            <div class="form-group mt-3">
+                <button type="submit" class="btn btn-block btn-success">Đặt hàng</button>
+            </div>
+        </form>
+        @*   VNPAY Button *@
+                  <form method="POST" asp-action="CreatePaymentUrlVnpay" asp-controller="Payment">
+                      <input type="hidden" name="Name" value="@Model.CustomerName" />
+                      <input type="hidden" name="Amount" value=" @(Model.CartItems.Sum(item => item.Price * item.Quantity))" />
+                      <input type="hidden" name="OrderDescription" value="Thanh toán qua VNPay" />
+                      <input type="hidden" name="OrderType" value="other" />
+
+                        <div id="vnpayButton" style="display: none; margin-top: 20px;">
+                            <button type="submit" class="btn btn-success">Pay with VNPay</button>
+                        </div>
+             
+
+                   </form>
+
     </div>
-
+    
     @Html.Partial("~/Views/ParticalView/Footer.cshtml")
-
     <script src="~/js/jquery-3.2.1.min.js"></script>
     <script src="~/styles/bootstrap4/popper.js"></script>
     <script src="~/styles/bootstrap4/bootstrap.min.js"></script>
     <script src="~/js/custom.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#typePayment").change(function () {
+                var selected = $(this).val();
+                if (selected == "2") {
+                    $("#vnpayButton").show();
+                } else {
+                    $("#vnpayButton").hide();
+                }
+            });
+        });
+    </script>
 </body>
 </html>

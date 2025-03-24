@@ -115,21 +115,27 @@ public partial class MyProjectClothingContext : DbContext
 
         modelBuilder.Entity<OrderDetail>(entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("OrderDetail");
+            // Định nghĩa composite key
+            entity.HasKey(e => new { e.OderId, e.ProductId });
 
+            entity.ToTable("OrderDetail");
+
+            // (Tuỳ chọn) Nếu cột ProductId trong DB là "ProductID"
             entity.Property(e => e.ProductId).HasColumnName("ProductID");
 
-            entity.HasOne(d => d.Order).WithMany()
-                .HasForeignKey(d => d.OderId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_OrderDetail_Order");
+            // Cấu hình quan hệ OrderDetail - Order
+            entity.HasOne(d => d.Order)
+                  .WithMany(o => o.OrderDetails) // Nếu Order có navigation property: public virtual ICollection<OrderDetail> OrderDetails { get; set; }
+                  .HasForeignKey(d => d.OderId)
+                  .OnDelete(DeleteBehavior.ClientSetNull)
+                  .HasConstraintName("FK_OrderDetail_Order");
 
-            entity.HasOne(d => d.Product).WithMany()
-                .HasForeignKey(d => d.ProductId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_OrderItem_Product");
+            // Cấu hình quan hệ OrderDetail - Product
+            entity.HasOne(d => d.Product)
+                  .WithMany(p => p.OrderDetails) // Nếu Product có navigation property: public virtual ICollection<OrderDetail> OrderDetails { get; set; }
+                  .HasForeignKey(d => d.ProductId)
+                  .OnDelete(DeleteBehavior.ClientSetNull)
+                  .HasConstraintName("FK_OrderDetail_Product");
         });
 
         modelBuilder.Entity<Payment>(entity =>

@@ -6,21 +6,18 @@ namespace EcormerProjectPRN222.Models
     {
         [Required]
         public string CustomerName { get; set; }
-
+        
         [Required]
-        [Phone]
         public string Phone { get; set; }
 
         [Required]
         public string Address { get; set; }
+        [Required]
+        public string Comment { get; set; }
 
         [Required]
-        [EmailAddress]
-        public string Email { get; set; }
+        public int TypePayment { get; set; } // hoặc đổi thành string nếu cần
 
-        [Required]
-        public int TypePayment { get; set; }
-
-        public List<CartItem> CartItems { get; set; }
+        public List<CartItem> CartItems { get; set; } = new List<CartItem>(); // Khởi tạo tránh lỗi null
     }
 }

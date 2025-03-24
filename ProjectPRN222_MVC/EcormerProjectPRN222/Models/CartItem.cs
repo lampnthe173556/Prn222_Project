@@ -20,8 +20,8 @@ namespace EcormerProjectPRN222.Models
         public string Img { get; set; }
 
         [Required]
-        [Column(TypeName = "decimal(18,2)")]
-        public decimal Price { get; set; }
+        [Column(TypeName = "int")]
+        public int Price { get; set; }
 
         [Required]
         public int Quantity { get; set; }

@@ -9,7 +9,7 @@ public partial class Product
 
     public string ProductName { get; set; } = null!;
 
-    public double? Price { get; set; }
+    public int? Price { get; set; }
 
     public string? Img { get; set; }
 
@@ -20,4 +20,6 @@ public partial class Product
     public int? Status { get; set; }
 
     public virtual Category? Category { get; set; } = null!;
+
+    public virtual ICollection<OrderDetail> OrderDetails { get; set; }
 }

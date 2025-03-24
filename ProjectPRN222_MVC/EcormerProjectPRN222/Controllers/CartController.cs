@@ -1,15 +1,20 @@
 ﻿using EcormerProjectPRN222.Models;
+using EcormerProjectPRN222.Models.Vnpay;
+using EcormerProjectPRN222.Services;
 using Microsoft.AspNetCore.Mvc;
+using System.Text;
 using System.Text.Json;
-using static Org.BouncyCastle.Crypto.Engines.SM2Engine;
+
 
 public class CartController : Controller
 {
     private readonly MyProjectClothingContext _context;
+    private readonly IVnPayService _vnPayService;
 
-    public CartController(MyProjectClothingContext context)
+    public CartController(MyProjectClothingContext context, IVnPayService vnPayService)
     {
         _context = context;
+        _vnPayService = vnPayService;
     }
 
     // chỉ lấy UserId khi người dùng đăng nhập
@@ -53,7 +58,7 @@ public class CartController : Controller
     }
 
     [HttpPost]
-    public IActionResult AddToCart(int productId, string productName, string img, decimal price, int quantity)
+    public IActionResult AddToCart(int productId, string productName, string img, int price, int quantity)
     {
 
         int? userId = GetUserSession();
@@ -67,7 +72,7 @@ public class CartController : Controller
         {
             _context.CartItems.Add(new CartItem
             {
-                UserId = userId,
+                UserId = (int)userId,
                 ProductId = productId,
                 ProductName = productName,
                 Img = img,
@@ -143,6 +148,7 @@ public class CartController : Controller
         }
         return RedirectToAction("Index");
     }
+
     //Checkout
     public IActionResult Checkout()
     {
@@ -158,9 +164,25 @@ public class CartController : Controller
         int? userId = GetUserSession();
         if (userId == null) return RedirectToAction("Index", "Login");
 
-        var cartItems = _context.CartItems.Where(c => c.UserId == userId).ToList();
+
+        var cartItems = _context.CartItems
+                .Where(c => c.UserId == userId)
+                .Select(c => new CartItem
+                {
+                    UserId = (int)userId,
+                    ProductName = c.ProductName,
+                    ProductId = c.ProductId,
+                    Quantity = c.Quantity,
+                    Price = c.Price,
+                })
+                .ToList();
+        ViewBag.cartItems = cartItems;
+
         var model = new CheckoutViewModel
         {
+            CustomerName = user.FullName,
+            Phone = user.Phone,
+            Address = user.Location,
             CartItems = cartItems
         };
         return View(model);
@@ -169,59 +191,80 @@ public class CartController : Controller
     [HttpPost]
     public IActionResult Checkout(CheckoutViewModel model)
     {
-        if (ModelState.IsValid)
+        var userJson = HttpContext.Session.GetString("user");
+        if (userJson == null)
         {
-            var userJson = HttpContext.Session.GetString("user");
-            if (userJson == null)
-            {
-                return RedirectToAction("Index", "Login");
-            }
-
-            var user = JsonSerializer.Deserialize<Account>(userJson);
-            int userId = user.UserId;
-
-            var order = new Order
-            {
-                UserId = userId,
-                OrderDate = DateOnly.FromDateTime(DateTime.Now),
-                LocationOrder = model.Address,
-                FullName = model.CustomerName,
-                PhoneNumber = model.Phone,
-                Status = 1, // Assuming 1 is the status for a new order
-                PayId = model.TypePayment,
-                TotalAmount = (double?)model.CartItems.Sum(item => item.Price * item.Quantity)
-            };
-
-            _context.Orders.Add(order);
-            _context.SaveChanges();
-
-            foreach (var item in model.CartItems)
-            {
-                var orderDetail = new OrderDetail
-                {
-                    OderId = order.OrderId,
-                    ProductId = item.ProductId,
-                    Quanity = item.Quantity,
-                    Price = item.Price
-                };
-                _context.OrderDetails.Add(orderDetail);
-            }
-
-            _context.SaveChanges();
-
-            // Clear the cart after checkout
-            var cartItems = _context.CartItems.Where(c => c.UserId == userId).ToList();
-            _context.CartItems.RemoveRange(cartItems);
-            _context.SaveChanges();
-
-            return RedirectToAction("PaymentSuccess");
+            return RedirectToAction("Index", "Login");
         }
+
+        var user = JsonSerializer.Deserialize<Account>(userJson);
+        ViewBag.User = user;
+
+        int userId = user.UserId;
+
+        var order = new Order
+        {
+            UserId = userId,
+            OrderDate = DateOnly.FromDateTime(DateTime.Now),
+            LocationOrder = model.Address,
+            FullName = model.CustomerName,
+            PhoneNumber = model.Phone,
+            Comment = model.Comment,
+            Status = 1, // Assuming 1 is the status for a new order
+            PayId = model.TypePayment,
+            TotalAmount = (int?)model.CartItems.Sum(item => item.Price * item.Quantity)
+        };
+
+        _context.Orders.Add(order);
+        _context.SaveChanges();
+
+        foreach (var item in model.CartItems)
+        {
+            var orderDetail = new OrderDetail
+            {
+                OderId = order.OrderId,
+                ProductId = item.ProductId,
+                Quanity = item.Quantity,
+                Price = item.Price
+            };
+            _context.OrderDetails.Add(orderDetail);
+        }
+
+        _context.SaveChanges();
+
+        // Clear the cart after checkout
+        var cartItems = _context.CartItems.Where(c => c.UserId == userId).ToList();
+        _context.CartItems.RemoveRange(cartItems);
+        _context.SaveChanges();
+
+        if (model.TypePayment == 1) // COD
+        {
+            return RedirectToAction("Index", "Bill");
+        }
+        else if (model.TypePayment == 2) // VNPay
+        {
+            //var paymentUrl = _vnPayService.CreatePaymentUrl(new PaymentInformationModel
+            //{
+            //    Name = model.CustomerName,
+            //    Amount = model.CartItems.Sum(item => item.Price * item.Quantity),
+            //    OrderDescription = "Thanh toán qua VNPay",
+            //    OrderType = "other"
+            //}, HttpContext);
+
+            //return Redirect(paymentUrl);
+        }
+
 
         return View(model);
     }
 
-    public IActionResult PaymentSuccess()
+    [HttpGet]
+    public IActionResult PaymentCallbackVnpay()
     {
-        return View();
+        var response = _vnPayService.PaymentExecute(Request.Query);
+
+        return Json(response);
     }
+
 }
+

@@ -27,10 +27,11 @@ public partial class Order
 
     public int PayId { get; set; }
 
-    public double? TotalAmount { get; set; }
+    public int? TotalAmount { get; set; }
 
     public virtual Payment Pay { get; set; } = null!;
 
     public virtual Account User { get; set; } = null!;
 
+    public virtual ICollection<OrderDetail> OrderDetails { get; set; } = new List<OrderDetail>();
 }
