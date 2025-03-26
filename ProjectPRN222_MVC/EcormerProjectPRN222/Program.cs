@@ -1,6 +1,7 @@
 using EcormerProjectPRN222.Models;
 using EcormerProjectPRN222.Services;
 using Microsoft.EntityFrameworkCore;
+using EcormerProjectPRN222.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -8,6 +9,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<MyProjectClothingContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DBDefault")));
+
+// Add SignalR
+builder.Services.AddSignalR();
+
 //add session
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
@@ -47,6 +52,9 @@ app.UseRouting();
 // Add authentication before authorization
 app.UseAuthentication();
 app.UseAuthorization();
+
+// Map SignalR hub
+app.MapHub<ServerHubs>("/crudHub");
 
 // Add area routing before default route
 app.MapControllerRoute(
