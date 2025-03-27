@@ -10,9 +10,12 @@ public partial class OrderDetail
     public int ProductId { get; set; }
 
     public int Quanity { get; set; }
+
     public int Price { get; set; }
 
-    public virtual Order Order { get; set; } = null!;
+    public virtual Order Oder { get; set; } = null!;
 
     public virtual Product Product { get; set; } = null!;
+
+
 }

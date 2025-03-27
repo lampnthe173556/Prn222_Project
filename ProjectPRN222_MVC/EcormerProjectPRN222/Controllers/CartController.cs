@@ -119,8 +119,8 @@ public class CartController : Controller
             _context.SaveChanges();
 
             // Tính tổng tiền của sản phẩm và tổng giỏ hàng
-            decimal itemTotal = cartItem.Quantity * cartItem.Price;
-            decimal cartTotal = _context.CartItems.Where(c => c.UserId == userId).Sum(c => c.Quantity * c.Price);
+            decimal itemTotal = (decimal)(cartItem.Quantity * cartItem.Price);
+            decimal cartTotal = (decimal)_context.CartItems.Where(c => c.UserId == userId).Sum(c => c.Quantity * c.Price);
 
             return Json(new
             {

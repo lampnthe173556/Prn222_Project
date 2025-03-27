@@ -17,26 +17,27 @@ public partial class MyProjectClothingContext : DbContext
 
     public virtual DbSet<Account> Accounts { get; set; }
 
+    public virtual DbSet<CartItem> CartItems { get; set; }
+
     public virtual DbSet<Category> Categories { get; set; }
+
+    public virtual DbSet<ChatGroup> ChatGroups { get; set; }
+
+    public virtual DbSet<Message> Messages { get; set; }
 
     public virtual DbSet<Order> Orders { get; set; }
 
     public virtual DbSet<OrderDetail> OrderDetails { get; set; }
 
     public virtual DbSet<Payment> Payments { get; set; }
+
     public virtual DbSet<Product> Products { get; set; }
 
     public virtual DbSet<Role> Roles { get; set; }
 
-    public virtual DbSet<CartItem> CartItems { get; set; }
-
-
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        var config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
-
-        if (!optionsBuilder.IsConfigured) { optionsBuilder.UseSqlServer(config.GetConnectionString("DBDefault")); }
-    }
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Data Source=(local);Initial Catalog=MyProject_Clothing;User ID=sa;Password=123456;Trusted_Connection=True;Trust Server Certificate=True");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -76,6 +77,23 @@ public partial class MyProjectClothingContext : DbContext
                 .HasConstraintName("FK_Role");
         });
 
+        modelBuilder.Entity<CartItem>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__CartItem__3214EC075C079EBC");
+
+            entity.HasIndex(e => e.ProductId, "IX_CartItems_ProductId");
+
+            entity.HasIndex(e => e.UserId, "IX_CartItems_UserId");
+
+            entity.Property(e => e.Img).HasMaxLength(255);
+            entity.Property(e => e.ProductName).HasMaxLength(255);
+            entity.Property(e => e.Quantity).HasDefaultValue(1);
+
+            entity.HasOne(d => d.User).WithMany(p => p.CartItems)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK_CartItems_Account");
+        });
+
         modelBuilder.Entity<Category>(entity =>
         {
             entity.ToTable("Category");
@@ -86,6 +104,58 @@ public partial class MyProjectClothingContext : DbContext
             entity.Property(e => e.Status).HasColumnName("status");
         });
 
+        modelBuilder.Entity<ChatGroup>(entity =>
+        {
+            entity.HasKey(e => e.GroupId).HasName("PK__ChatGrou__149AF30A189EEBE5");
+
+            entity.ToTable("ChatGroup");
+
+            entity.Property(e => e.GroupId).HasColumnName("GroupID");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.GroupName).HasMaxLength(100);
+
+            entity.HasMany(d => d.Users).WithMany(p => p.Groups)
+                .UsingEntity<Dictionary<string, object>>(
+                    "ChatGroupUser",
+                    r => r.HasOne<Account>().WithMany()
+                        .HasForeignKey("UserId")
+                        .HasConstraintName("FK__ChatGroup__userI__7F2BE32F"),
+                    l => l.HasOne<ChatGroup>().WithMany()
+                        .HasForeignKey("GroupId")
+                        .HasConstraintName("FK__ChatGroup__Group__7E37BEF6"),
+                    j =>
+                    {
+                        j.HasKey("GroupId", "UserId").HasName("PK__ChatGrou__F82352C77315CEC7");
+                        j.ToTable("ChatGroupUser");
+                        j.IndexerProperty<int>("GroupId").HasColumnName("GroupID");
+                        j.IndexerProperty<int>("UserId").HasColumnName("userID");
+                    });
+        });
+
+        modelBuilder.Entity<Message>(entity =>
+        {
+            entity.HasKey(e => e.MessageId).HasName("PK__Message__C87C037CCB97562F");
+
+            entity.ToTable("Message");
+
+            entity.Property(e => e.MessageId).HasColumnName("MessageID");
+            entity.Property(e => e.GroupId).HasColumnName("GroupID");
+            entity.Property(e => e.SentAt)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.UserId).HasColumnName("userID");
+
+            entity.HasOne(d => d.Group).WithMany(p => p.Messages)
+                .HasForeignKey(d => d.GroupId)
+                .HasConstraintName("FK__Message__GroupID__7A672E12");
+
+            entity.HasOne(d => d.User).WithMany(p => p.Messages)
+                .HasForeignKey(d => d.UserId)
+                .HasConstraintName("FK__Message__userID__7B5B524B");
+        });
+
         modelBuilder.Entity<Order>(entity =>
         {
             entity.HasKey(e => e.OrderId).HasName("PK_OrderDetail");
@@ -94,8 +164,12 @@ public partial class MyProjectClothingContext : DbContext
 
             entity.Property(e => e.OrderId).HasColumnName("OrderID");
             entity.Property(e => e.Comment).HasColumnName("comment");
+            entity.Property(e => e.FullName).HasMaxLength(255);
             entity.Property(e => e.OrderDate).HasDefaultValueSql("(getdate())");
             entity.Property(e => e.PayId).HasColumnName("pay_id");
+            entity.Property(e => e.PhoneNumber)
+                .HasMaxLength(20)
+                .HasDefaultValue("0123456789");
             entity.Property(e => e.Status)
                 .HasDefaultValue(-1)
                 .HasColumnName("status");
@@ -115,27 +189,22 @@ public partial class MyProjectClothingContext : DbContext
 
         modelBuilder.Entity<OrderDetail>(entity =>
         {
-            // Định nghĩa composite key
-            entity.HasKey(e => new { e.OderId, e.ProductId });
+            entity
+                .HasNoKey()
+                .ToTable("OrderDetail");
 
-            entity.ToTable("OrderDetail");
-
-            // (Tuỳ chọn) Nếu cột ProductId trong DB là "ProductID"
+            entity.Property(e => e.Price).HasDefaultValue(25);
             entity.Property(e => e.ProductId).HasColumnName("ProductID");
 
-            // Cấu hình quan hệ OrderDetail - Order
-            entity.HasOne(d => d.Order)
-                  .WithMany(o => o.OrderDetails) // Nếu Order có navigation property: public virtual ICollection<OrderDetail> OrderDetails { get; set; }
-                  .HasForeignKey(d => d.OderId)
-                  .OnDelete(DeleteBehavior.ClientSetNull)
-                  .HasConstraintName("FK_OrderDetail_Order");
+            entity.HasOne(d => d.Oder).WithMany()
+                .HasForeignKey(d => d.OderId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_OrderDetail_Order");
 
-            // Cấu hình quan hệ OrderDetail - Product
-            entity.HasOne(d => d.Product)
-                  .WithMany(p => p.OrderDetails) // Nếu Product có navigation property: public virtual ICollection<OrderDetail> OrderDetails { get; set; }
-                  .HasForeignKey(d => d.ProductId)
-                  .OnDelete(DeleteBehavior.ClientSetNull)
-                  .HasConstraintName("FK_OrderDetail_Product");
+            entity.HasOne(d => d.Product).WithMany()
+                .HasForeignKey(d => d.ProductId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_OrderDetail_Product");
         });
 
         modelBuilder.Entity<Payment>(entity =>

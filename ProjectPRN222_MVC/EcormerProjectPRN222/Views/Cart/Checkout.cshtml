@@ -114,9 +114,8 @@
                         </tbody>
                     </table>
                     <div class="d-flex justify-content-end mt-3">
-                        <h5>Total: <span id="cart-total">
-                            @(Model.CartItems.Sum(item => item.Price * item.Quantity).ToString("N0") + " ₫")
-                        </span></h5>
+                        <img id="vnpayImage" src="@Url.Content("~/images/z6445752287675_939bda53931167a6b60e2f37f255d9cf.jpg")"
+                             alt="VNPay Image" class="img-fluid" style="max-width: 200px; display: none;" />
                     </div>
                   
                 </div>
@@ -154,11 +153,17 @@
             $("#typePayment").change(function () {
                 var selected = $(this).val();
                 if (selected == "2") {
-                    $("#vnpayButton").show();
+                    $("#vnpayImage").show(); // Hiển thị ảnh VNPay
                 } else {
-                    $("#vnpayButton").hide();
+                    $("#vnpayImage").hide(); // Ẩn ảnh VNPay
                 }
             });
+
+            // Kiểm tra nếu trang load lên và đã chọn VNPay từ trước
+            if ($("#typePayment").val() == "2") {
+                $("#vnpayButton").show();
+                $("#vnpayImage").show();
+            }
         });
     </script>
 </body>

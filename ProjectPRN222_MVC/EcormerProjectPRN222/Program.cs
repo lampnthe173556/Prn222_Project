@@ -1,6 +1,7 @@
 using EcormerProjectPRN222.Models;
 using EcormerProjectPRN222.Services;
 using Microsoft.EntityFrameworkCore;
+using Project2.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -24,6 +25,8 @@ builder.Services.Configure<CookiePolicyOptions>(options =>
 });
 //add email service
 builder.Services.AddSingleton<EmailService>();
+//signlR
+builder.Services.AddSignalR();
 
 //VNpay
 builder.Services.AddScoped<IVnPayService, VnPayService>();
@@ -48,6 +51,8 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 
+//signlR
+app.MapHub<SignalRServer>("/signalRServer");
 // Add area routing before default route
 app.MapControllerRoute(
     name: "areas",
