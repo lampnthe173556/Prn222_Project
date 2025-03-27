@@ -19,5 +19,7 @@ public partial class Product
 
     public int? Status { get; set; }
 
-    public virtual Category Category { get; set; } = null!;
+    public virtual Category? Category { get; set; } = null!;
+
+    public virtual ICollection<OrderDetail>? OrderDetails { get; set; }
 }

@@ -8,7 +8,7 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
     public class DashboardController : AdminBaseController
     {
         private readonly MyProjectClothingContext _context;
-        public DashboardController(MyProjectClothingContext context) 
+        public DashboardController(MyProjectClothingContext context)
         {
             _context = context;
         }
@@ -20,7 +20,7 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
                 -1 => "Reject",
                 0 => "Pending",
                 1 => "Accept",
-                
+
             };
         }
 
@@ -75,7 +75,7 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
             var salesData = await _context.Orders
                 .Where(o => o.Status == 1)
                 .GroupBy(o => o.OrderDate)
-                .OrderBy(g => g.Key)               
+                .OrderBy(g => g.Key)
                 .Select(g => new
                 {
                     Date = g.Key.ToString(),
@@ -108,8 +108,8 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
                 labels = categoryData.Select(x => x.Name),
                 data = categoryData.Select(x => x.Count)
             };
-
             return View();
         }
+
     }
 }
