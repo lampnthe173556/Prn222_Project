@@ -15,9 +15,6 @@ namespace EcormerProjectPRN222.Controllers
             _context = context;
             _signalRHub = signalRHub;
         }
-        public IActionResult Index()
-        {
-            
-        }
+       
     }
 }

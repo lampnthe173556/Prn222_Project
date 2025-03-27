@@ -57,15 +57,15 @@ namespace EcormerProjectPRN222.Areas.Admin.Controllers
             // Get top selling products
             var orderDetails = await _context.Set<OrderDetail>()
                 .Include(od => od.Product)
-                .Include(od => od.Order)
-                .Where(od => od.Order.Status == 1) // Only completed orders
+                .Include(od => od.Oder)
+                .Where(od => od.Oder.Status == 1) // Only completed orders
                 .GroupBy(od => new { od.ProductId, od.Product.ProductName, od.Product.Img })
                 .Select(g => new
                 {
                     Id = g.Key.ProductId,
                     Name = g.Key.ProductName,
                     ImageUrl = g.Key.Img,
-                    TotalSales = g.Sum(od => od.Quanity * (od.Order.TotalAmount ?? 0))
+                    TotalSales = g.Sum(od => od.Quanity * (od.Oder.TotalAmount ?? 0))
                 })
                 .OrderByDescending(x => x.TotalSales)
                 .Take(5)

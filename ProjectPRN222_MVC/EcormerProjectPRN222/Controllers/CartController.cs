@@ -225,7 +225,7 @@ public class CartController : Controller
                 OderId = order.OrderId,
                 ProductId = item.ProductId,
                 Quanity = item.Quantity,
-                Price = item.Price
+                Price = (int)item.Price
             };
             _context.OrderDetails.Add(orderDetail);
         }
