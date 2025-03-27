@@ -98,7 +98,8 @@
                                         <input type="hidden" name="CartItems[@i].ProductName" value="@item.ProductName" />
                                     </td>
                                     <td>
-                                        @(item.Price.ToString("N0") + " ₫")
+                                        @item.Price.ToString("N0", new System.Globalization.CultureInfo("vi-VN")) + " ₫"
+
                                         <input type="hidden" name="CartItems[@i].Price" value="@item.Price" />
                                     </td>
                                     <td>

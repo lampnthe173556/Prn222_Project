@@ -187,23 +187,25 @@ public partial class MyProjectClothingContext : DbContext
                 .HasConstraintName("FK_Order_Account");
         });
 
-        modelBuilder.Entity<OrderDetail>(entity =>
+        modelBuilder.Entity<OrderDetail>(static entity =>
         {
-            entity
-                .HasNoKey()
-                .ToTable("OrderDetail");
+            entity.HasKey(e => new { e.OderId, e.ProductId }); // Khóa chính kết hợp
 
+            entity.ToTable("OrderDetail");
+
+            entity.Property(e => e.Quanity).HasDefaultValue(1);
             entity.Property(e => e.Price).HasDefaultValue(25);
-            entity.Property(e => e.ProductId).HasColumnName("ProductID");
 
-            entity.HasOne(d => d.Oder).WithMany()
+            entity.HasOne(d => d.Oder)
+                .WithMany(o => o.OrderDetails)
                 .HasForeignKey(d => d.OderId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade) // Xóa đơn hàng thì xóa luôn OrderDetail
                 .HasConstraintName("FK_OrderDetail_Order");
 
-            entity.HasOne(d => d.Product).WithMany()
+            entity.HasOne(d => d.Product)
+                .WithMany(p => p.OrderDetails)
                 .HasForeignKey(d => d.ProductId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade) // Xóa sản phẩm thì xóa luôn OrderDetail
                 .HasConstraintName("FK_OrderDetail_Product");
         });
 
