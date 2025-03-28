@@ -1,18 +1,18 @@
-﻿using EcormerProjectPRN222.Models;
+﻿using EcormerProjectPRN222.Hubs;
+using EcormerProjectPRN222.Models;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
-using EcormerProjectPRN222.Hubs;
 using System.Text.Json;
 
 namespace EcormerProjectPRN222.Controllers
 {
-    public class ChatController : Controller
+    public class ChatAdminController : Controller
     {
         private readonly MyProjectClothingContext _context;
         private readonly IHubContext<SignalRServer> _signalRHub;
 
-        public ChatController(MyProjectClothingContext context, IHubContext<SignalRServer> signalRHub)
+        public ChatAdminController(MyProjectClothingContext context, IHubContext<SignalRServer> signalRHub)
         {
             _context = context;
             _signalRHub = signalRHub;
@@ -27,38 +27,21 @@ namespace EcormerProjectPRN222.Controllers
             return user?.UserId; // Trả về UserId hoặc null nếu không có
         }
 
-        public int GetCartCount()
-        {
-            int? userId = GetUserSession();
-            if (userId == null) return 0; //  chưa đăng nhập thì giỏ hàng trống
-            return _context.CartItems.Count(c => c.UserId == userId);
-        }
 
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> ChatAdminView()
         {
             var userJson = HttpContext.Session.GetString("user");
             if (userJson == null)
             {
+                TempData["ErrorMessage"] = "Bạn chưa đăng nhập!";
                 return RedirectToAction("Index", "Login");
             }
 
             var user = JsonSerializer.Deserialize<Account>(userJson);
             ViewBag.User = user;
 
-            int? userId = GetUserSession();
-            if (userId == null)
-            {
-                TempData["ErrorMessage"] = "Bạn chưa đăng nhập!";
-                return RedirectToAction("Index", "Login");
-            }
 
-            // Lấy giỏ hàng (tối ưu hóa bằng AsNoTracking)
-            var cartItems = await _context.CartItems
-                                          .AsNoTracking()
-                                          .Where(c => c.UserId == userId)
-                                          .ToListAsync();
-            ViewBag.cartItems = cartItems;
-
+           
             // Lấy danh sách tin nhắn (tối ưu hóa bằng AsNoTracking)
             List<Message> messages = await _context.Messages
                                            .AsNoTracking()
@@ -69,9 +52,12 @@ namespace EcormerProjectPRN222.Controllers
                                            .ToListAsync();
 
             // Gửi tín hiệu cập nhật chat qua SignalR (chờ xử lý để tránh lỗi)
-            await _signalRHub.Clients.All.SendAsync("LoadAllUser");
+            await _signalRHub.Clients.All.SendAsync("LoadAllAdmin");
+
 
             return View(messages);
+            
+
         }
 
         [HttpPost]

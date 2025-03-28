@@ -1,6 +1,7 @@
 ﻿@model List<EcormerProjectPRN222.Models.Message>
 
 @{
+    Layout = null;
     ViewBag.Title = "Chat";
     var user = ViewBag.User;
 }
@@ -24,42 +25,36 @@
             word-wrap: break-word;
         }
 
-        /* Sender's messages (right-aligned) */
-        .message.sender {
-            background-color: #d1f7c4;
-            margin-left: auto;
-            text-align: right;
-        }
+            /* Sender's messages (right-aligned) */
+            .message.sender {
+                background-color: #d1f7c4;
+                margin-left: auto;
+                text-align: right;
+            }
 
-        /* Recipient's messages (left-aligned) */
-        .message.recipient {
-            background-color: #f1f1f1;
-            margin-right: auto;
-            text-align: left;
-        }
+            /* Recipient's messages (left-aligned) */
+            .message.recipient {
+                background-color: #f1f1f1;
+                margin-right: auto;
+                text-align: left;
+            }
     </style>
 </head>
 
 <body class="bg-light">
-    @Html.Partial("~/Views/ParticalView/Header.cshtml")
-    <br /> 
-    <br />
-    <br />
-    <br />
-    <br /> 
-    <br />
-    <br />
+
     <div class="container">
-        <h2>Hỗ trợ Khách hàng</h2>
+        <a href="/Admin/Dashboard" ><button class="btn-primary">Back to home page admin</button></a>
+        <h2 style="color:forestgreen;cursor:pointer;">Admin chat</h2>
 
         <!-- Chatbox -->
         <div id="chatBox" class="border rounded p-3 mb-3" style="height: 300px; overflow-y: scroll;">
             <!-- Messages will be displayed here -->
             @foreach (var message in Model)
             {
-                    <div class="message @(message.User.Username == user.Username ? "sender" : "recipient")">
-                        <strong>@(user.Username):</strong> @message.Content
-                    </div>
+                <div class="message @(message.User.Username == user.Username ? "sender" : "recipient")">
+                    <strong>@(user.Username):</strong> @message.Content
+                </div>
             }
         </div>
 
@@ -74,7 +69,7 @@
 
     </div>
 
-    @Html.Partial("~/Views/ParticalView/Footer.cshtml")
+   
 </body>
 </html>
 <script>
@@ -85,7 +80,7 @@
 
     var connection = new signalR.HubConnectionBuilder().withUrl("/signalRServer").build();
 
-    connection.on("LoadAllAdmin", function () {
+    connection.on("LoadAllUser", function () {
         window.location.reload();
     });
 

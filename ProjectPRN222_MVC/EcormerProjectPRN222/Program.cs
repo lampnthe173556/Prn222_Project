@@ -1,7 +1,6 @@
 using EcormerProjectPRN222.Models;
 using EcormerProjectPRN222.Services;
 using Microsoft.EntityFrameworkCore;
-using Project2.Hubs;
 using EcormerProjectPRN222.Hubs;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -58,8 +57,6 @@ app.UseAuthorization();
 
 //signlR
 app.MapHub<SignalRServer>("/signalRServer");
-// Map SignalR hub
-app.MapHub<ServerHubs>("/crudHub");
 
 // Add area routing before default route
 app.MapControllerRoute(

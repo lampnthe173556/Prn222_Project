@@ -1,6 +1,6 @@
 ﻿using Microsoft.AspNetCore.SignalR;
 
-namespace Project2.Hubs
+namespace EcormerProjectPRN222.Hubs
 {
     public class SignalRServer : Hub
     {
